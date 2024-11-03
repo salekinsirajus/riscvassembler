@@ -21,10 +21,20 @@
 
 %%
 [\t ]			 {; }
+"#".*            {; /* ignore everything this line */ }
 [\n]             { ++linenum; charnum=0; }
 [\\n]            { ++linenum; charnum=0; }
 
-"add"            { return ADD_OP; }
+"add"            { return ADD; }
+"addi"           { return ADD_IMM; }
+"and"            { return AND; }
+"sub"            { return SUB; }
+"subi"           { return SUB_IMM; }
+"sll"            { return SLL; }
+"slt"            { return SLT; }
+"xor"            { return XOR; }
+
+[12][0-9]        { yylval.ival = atoi(&yytext[1]); return IMM; }
 
 [rx][0-9]        { yylval.ival = atoi(&yytext[1]); return REG; }
 ,                { return COMMA; }

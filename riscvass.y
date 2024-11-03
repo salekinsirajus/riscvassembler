@@ -25,17 +25,23 @@
 }
 
 //Terminal symbols
-%token <token> ADD_OP
+%token <token> ADD ADD_IMM
+%token <token> SUB SUB_IMM
+%token <token> SLL SLT AND XOR
+
 %token <token> REG
 %token <token> COMMA
+%token <ival>  IMM
 
 //non-terminals
-%type <ival>  register;
+%type <ival> register;
+%type <ival> imm;
 
 %%
 //actual grammar
-expression:
-	instruction  { cout<< "evaluating expression" << endl; }
+program:
+	  instruction  { cout<< "evaluating instruction" << endl; }
+	| program instruction { cout << "recursive program" << endl; }
     ;
 
 instruction:
@@ -46,21 +52,28 @@ instruction:
 		add_instr.rs2 = $6;
 		print_instruction(add_instr);
 	}
+	| operand register COMMA register COMMA imm {
+		cout << "op r, r, imm" << endl;
+	}
 	;
 
 operand:
-	ADD_OP       { 
+	ADD { 
 			cout << "ADD_OP" << endl; 
 			add_instr.opcode = 0b0110011; 
 		}
 	;
 
 register:
-	REG          { 
+	REG { 
 		cout << "REG " << $1 << endl;
 		$$ = $1;
-	}
+		}
 	;
+imm:
+	IMM {
+		cout << "IMM " << $1 << endl;
+	}
 
 %%
 
