@@ -24,7 +24,7 @@ void write_empty_elf(const char* filename) {
     elf_header.e_ident[4] = 2;  // 64-bit
     elf_header.e_ident[5] = 1;  // Little-endian
     elf_header.e_ident[6] = 1;  // ELF version
-    elf_header.e_type = 2;      // Executable file
+    elf_header.e_type = ET_EXEC;      // Executable file
     elf_header.e_machine = 0xF3;// RISC-V (0xF3)
     elf_header.e_version = 1;   // ELF version
     elf_header.e_entry = 0;     // Entry point

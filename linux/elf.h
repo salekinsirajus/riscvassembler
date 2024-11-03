@@ -49,6 +49,7 @@ enum E_Type {
 	ET_LOPROC	= 0xff00,		// Processor-specific
 	ET_HIPROC	= 0xffff        // Processor-specific
 };
+
 // WIP
 
 typedef struct {
