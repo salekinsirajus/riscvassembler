@@ -4,6 +4,7 @@
 	#include <iostream>
 	#include "encoding.h"
 	#include "utils.h"
+	#include "linux/elf.h"
 
 	using namespace std;
 

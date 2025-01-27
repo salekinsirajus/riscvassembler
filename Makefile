@@ -1,5 +1,5 @@
 CXX = clang++
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -v
 TARGET = riscvass
 LEX = flex
 
@@ -10,6 +10,8 @@ PARSE = bison
 PARSE_SRC = riscvass.y
 PARSE_GEN = riscvass.tab.c
 
+LINUX_SRC = linux/elf.cc
+
 all: $(TARGET)
 
 $(PARSE_GEN): $(PARSE_SRC)
@@ -18,8 +20,8 @@ $(PARSE_GEN): $(PARSE_SRC)
 $(LEX_GEN): $(LEX_SRC)
 	$(LEX) $(LEX_SRC)
 
-$(TARGET): $(PARSE_GEN) $(LEX_GEN)
-	$(CXX) $(PARSE_GEN) $(LEX_GEN) -o $(TARGET)
+$(TARGET): $(PARSE_GEN) $(LEX_GEN) $(LINUX_SRC)
+	$(CXX) $(PARSE_GEN) $(LEX_GEN) $(LINUX_SRC) -o $(TARGET)
 
 clean:
 	rm -f $(LEX_GEN) $(TARGET) $(PARSE_GEN) riscvass.tab.h
