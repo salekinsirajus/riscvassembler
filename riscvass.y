@@ -15,7 +15,7 @@
 
 	void yyerror(const char *s);
 	//go from left to right
-	inst32_t add_instr;
+	inst32_t instr;
 %}
 
 %union {
@@ -39,6 +39,7 @@
 %token <token> TEXT
 %token <token> GLOBAL
 %token <token> START 
+%token <token> LABEL
 
 //non-terminals
 %type <ival> register;
@@ -52,12 +53,15 @@ program:
 
 statements:
 	statement
-	| statements statement;
+	| statement statements;
 
 statement:
-	  instruction  { cout<< "evaluating instruction" << endl; }
+	 instruction  
+		{ 
+			cout<< "evaluating instruction" << endl; 
+			//cout<< "size of the instructions vector: " << instructions.size() << endl;
+		}
 	| directive    { cout << "evaluating a directive" << endl; }
-//	| comment	   { cout << "comment line " << endl; /* it's ignored in bison */}
     ;
 
 directive: 
@@ -68,15 +72,20 @@ directive:
 	| GLOBAL START {
 		cout << "hardcoded .globl .start" << endl;
 	} 
+	| LABEL {
+		cout << "identify the label: " << endl;
+	}
 	;
 
 instruction:
 	operand register COMMA register COMMA register
 	{ 
 		cout << "evaluating instruction" << endl; 
-		add_instr.rs1 = $4;
-		add_instr.rs2 = $6;
-		print_instruction(add_instr);
+		instr.rs1 = $4;
+		instr.rs2 = $6;
+		//instructions.push_back(instr);
+		//instr = (inst32_t)0;
+		print_instruction_hex(instr);
 	}
 	| operand register COMMA register COMMA imm {
 		cout << "op r, r, imm" << endl;
@@ -86,14 +95,20 @@ instruction:
 operand:
 	ADD { 
 			cout << "ADD_OP" << endl; 
-			add_instr.opcode = 0b0110011; 
+			instr.opcode = 0b0110011; 
+		}
+	| SUB 
+		{
+			cout << "SUB_OP" << endl; 
+			instr.opcode = 0b0110100;
 		}
 	;
 
 register:
-	REG { 
-		cout << "REG " << $1 << endl;
-		$$ = $1;
+	REG 
+		{ 
+			cout << "REG " << $1 << endl;
+			$$ = $1;
 		}
 	;
 imm:

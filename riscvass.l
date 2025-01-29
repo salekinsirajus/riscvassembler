@@ -13,7 +13,6 @@
 
     int linenum = 0;
     int charnum = 0;
-    //[xX]([0-9]|1[0-9]|2[0-9]|3[0-1]) { yylval.ival = (int)(size_t)yytext; return REG; }
 %}
 
 %option noyywrap
@@ -37,6 +36,7 @@
 "sll"            { return SLL; }
 "slt"            { return SLT; }
 "xor"            { return XOR; }
+_[a-zA-Z0-9]*:   { return LABEL; }
 
 [12][0-9]        { yylval.ival = atoi(&yytext[1]); return IMM; }
 
