@@ -8,6 +8,6 @@ typedef struct inst32_t {
 	unsigned rs1    :5;
 	unsigned rs2    :5;
 	unsigned funct7 :7;
-} inst32;
+} inst32_t;
 
 #endif
