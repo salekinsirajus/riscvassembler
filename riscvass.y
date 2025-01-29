@@ -32,7 +32,13 @@
 
 %token <token> REG
 %token <token> COMMA
+%token <token> COLON
 %token <ival>  IMM
+
+%token <token> SECTION
+%token <token> TEXT
+%token <token> GLOBAL
+%token <token> START 
 
 //non-terminals
 %type <ival> register;
@@ -41,9 +47,28 @@
 %%
 //actual grammar
 program:
+	statements
+	;
+
+statements:
+	statement
+	| statements statement;
+
+statement:
 	  instruction  { cout<< "evaluating instruction" << endl; }
-	| program instruction { cout << "recursive program" << endl; }
+	| directive    { cout << "evaluating a directive" << endl; }
+//	| comment	   { cout << "comment line " << endl; /* it's ignored in bison */}
     ;
+
+directive: 
+	SECTION TEXT
+	{
+		cout << "hardcoded .section .text" << endl;
+	}
+	| GLOBAL START {
+		cout << "hardcoded .globl .start" << endl;
+	} 
+	;
 
 instruction:
 	operand register COMMA register COMMA register
