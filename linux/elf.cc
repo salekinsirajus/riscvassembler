@@ -21,15 +21,19 @@ void write_empty_elf(std::string filename) {
     elf_header.e_ident[1] = 'E';
     elf_header.e_ident[2] = 'L';
     elf_header.e_ident[3] = 'F';
+
     elf_header.e_ident[4] = 2;  // 64-bit
     elf_header.e_ident[5] = 1;  // Little-endian
     elf_header.e_ident[6] = 1;  // ELF version
     elf_header.e_type = ET_EXEC;      // Executable file
+
     elf_header.e_machine = 0xF3;     // RISC-V (0xF3)
     elf_header.e_version = 1;   // ELF version
-    elf_header.e_entry = 0;     // Entry point
+    elf_header.e_entry = 0;     // TODO: Entry point
+
     elf_header.e_phoff = sizeof(Elf64_Ehdr); // Program header table offset
-    elf_header.e_shoff = 0;     // Section header table offset (not used)
+    elf_header.e_shoff = 0;     // Section header table offset
+
     elf_header.e_flags = 0;
     elf_header.e_ehsize = sizeof(Elf64_Ehdr);
     elf_header.e_phentsize = sizeof(Elf64_Phdr); // Program header entry size
