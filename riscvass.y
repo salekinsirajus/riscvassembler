@@ -18,7 +18,6 @@
     //go from left to right
     inst32_t instr;
     Section currentSection;
-
 	ELF32 elfContent;
 %}
 
@@ -85,6 +84,9 @@ directive:
         cout << ">> hardcoded .section .text" << endl;
         Section textSection;
         currentSection = textSection;
+		Elf32_Shdr currentSectionHeader;
+		currentSectionHeader.sh_type = SHT_PROGBITS; 
+		elfContent.section_headers.push_back(currentSectionHeader);
     }
     | GLOBAL START {
         cout << ">> hardcoded .globl .start" << endl;
@@ -97,27 +99,28 @@ directive:
 instruction:
     operand register COMMA register COMMA register
     { 
-        cout << ">>>> evaluating instruction" << endl; 
+        //cout << ">>>> evaluating instruction" << endl; 
         instr.rs1 = $4;
         instr.rs2 = $6;
 
-        print_instruction_hex(instr);
+        //print_instruction_hex(instr);
         currentSection.data.push_back(instr);
         std::memset(&instr, 0, sizeof(instr));
     }
-    | operand register COMMA register COMMA imm {
-        cout << ">>>> op r, r, imm" << endl;
+    | operand register COMMA register COMMA imm 
+	{
+        //cout << ">>>> op r, r, imm" << endl;
     }
     ;
 
 operand:
     ADD { 
-            cout << ">>>>>> ADD_OP" << endl; 
+            //cout << ">>>>>> ADD_OP" << endl; 
             instr.opcode = 0b0110011; 
         }
     | SUB 
         {
-            cout << ">>>>>> SUB_OP" << endl; 
+            //cout << ">>>>>> SUB_OP" << endl; 
             instr.opcode = 0b0110100;
         }
     ;
@@ -125,13 +128,13 @@ operand:
 register:
     REG 
         { 
-            cout << ">>>>>>>> REG " << $1 << endl;
+            //cout << ">>>>>>>> REG " << $1 << endl;
             $$ = $1;
         }
     ;
 imm:
     IMM {
-        cout << ">>>>>>>> IMM " << $1 << endl;
+        //cout << ">>>>>>>> IMM " << $1 << endl;
     }
 
 %%

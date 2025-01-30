@@ -60,6 +60,14 @@ void write_empty_elf(ELF32& elf, std::string filename) {
 		reinterpret_cast<const char*>(&prog_header), sizeof(prog_header)
 	);
 
+	for (std::vector<Elf32_Shdr>::iterator it=elf.section_headers.begin();
+		 it != elf.section_headers.end(); ++it){
+		std::cout << "section being written" << std::endl;
+		elf_file.write(
+			reinterpret_cast<const char*>(&(*it)), sizeof(&(*it))
+		);
+	}
+
     elf_file.close();
 
     if (!elf_file.good()) {
