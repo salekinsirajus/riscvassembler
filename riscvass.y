@@ -21,8 +21,8 @@
 %}
 
 %union {
-    int            ival;
-    float         fval;
+    int         ival;
+    float       fval;
     char       *sval;
     int        token;
 }

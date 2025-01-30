@@ -23,6 +23,7 @@
 #define PT_GNU_RELRO	(PT_LOOS + 0x474e552)
 #define PT_GNU_PROPERTY	(PT_LOOS + 0x474e553)
 
+/* Enums */
 // File types.
 // See current registered ELF types at:
 //    http://www.sco.com/developers/gabi/latest/ch4.eheader.html
@@ -36,6 +37,18 @@ enum {
   ET_HIOS = 0xfeff,   // Operating system-specific
   ET_LOPROC = 0xff00, // Beginning of processor-specific codes
   ET_HIPROC = 0xffff  // Processor-specific
+};
+
+enum Elf_Ident {
+	EI_MAG0		= 0, 			 // 0x7F
+	EI_MAG1 	= 1, 			 // 'E'
+	EI_MAG2 	= 2, 			 // 'L'
+	EI_MAG3 	= 3, 			 // 'F'
+	EI_CLASS 	= 4,			 // Arch (32/64)
+	EI_DATA		= 5,             // Byte Order
+	EI_OSABI    = 7,             // OS Specific
+	EI_ABIVERSION=8,             // OS Specific
+	EI_PAD		= 9				 // Padding
 };
 
 // Segment flag bits.
@@ -73,18 +86,7 @@ typedef struct {
     Elf32_Half e_shstrndx;        /* Section name string table index */
 } Elf64_Ehdr;
 
-enum Elf_Ident {
-	EI_MAG0		= 0, 			 // 0x7F
-	EI_MAG1 	= 1, 			 // 'E'
-	EI_MAG2 	= 2, 			 // 'L'
-	EI_MAG3 	= 3, 			 // 'F'
-	EI_CLASS 	= 4,			 // Arch (32/64)
-	EI_DATA		= 5,             // Byte Order
-	EI_OSABI    = 7,             // OS Specific
-	EI_ABIVERSION=8,             // OS Specific
-	EI_PAD		= 9				 // Padding
-};
-
+/* Program Header */
 typedef struct {
     uint32_t p_type;    /* Type of segment */
     uint32_t p_flags;   /* Segment attributes */
@@ -96,9 +98,62 @@ typedef struct {
     uint64_t p_align;   /* Alignment of segment */
 } Elf64_Phdr;
 
+/* for 32-bit */
+/* ELF Header */
+typedef struct {
+    uint8_t e_ident[16];
+    uint16_t e_type;
+    uint16_t e_machine;
+    uint32_t e_version;
+    uint32_t e_entry;
+    uint32_t e_phoff;
+    uint32_t e_shoff;
+    uint32_t e_flags;
+    uint16_t e_ehsize;
+    uint16_t e_phentsize;
+    uint16_t e_phnum;
+    uint16_t e_shentsize;
+    uint16_t e_shnum;
+    uint16_t e_shstrndx;
+} Elf32_Ehdr;
+
+/* Program Header */
+typedef struct {
+    uint32_t p_type;
+    uint32_t p_offset;
+    uint32_t p_vaddr;
+    uint32_t p_paddr;
+    uint32_t p_filesz;
+    uint32_t p_memsz;
+    uint32_t p_flags;
+    uint32_t p_align;
+} Elf32_Phdr;
+
+/* Section Header */
+typedef struct {
+    uint32_t sh_name;
+    uint32_t sh_type;
+    uint32_t sh_flags;
+    uint32_t sh_addr;
+    uint32_t sh_offset;
+    uint32_t sh_size;
+    uint32_t sh_link;
+    uint32_t sh_info;
+    uint32_t sh_addralign;
+    uint32_t sh_entsize;
+} Elf32_Shdr;
+
 typedef struct Section {
     std::vector<uint32_t> data;
+    uint8_t label;
 } Section;
+
+typedef struct ELF32 {
+    Elf32_Ehdr elf_header;                   /* ELF File Header  */
+    std::vector<Elf32_Phdr> program_headers; /* Program Headers  */
+    std::vector<Elf32_Shdr> section_headers; /* Section Headers  */
+    std::vector<Section>    sections;        /* Sections         */
+} ELF32;
 
 void write_empty_elf(std::string filename);
 
