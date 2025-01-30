@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 /* These constants are for the segment types stored in the image headers */
 #define PT_NULL    0
@@ -94,6 +95,10 @@ typedef struct {
     uint64_t p_memsz;   /* Size of segment in memory */
     uint64_t p_align;   /* Alignment of segment */
 } Elf64_Phdr;
+
+typedef struct Section {
+    std::vector<uint32_t> data;
+} Section;
 
 void write_empty_elf(std::string filename);
 

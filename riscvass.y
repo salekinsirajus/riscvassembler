@@ -1,27 +1,29 @@
 %{
-	//for bison
-	#include <stdio.h>
-	#include <iostream>
-	#include "encoding.h"
-	#include "utils.h"
-	#include "linux/elf.h"
+    // riscvass.y - the bison file
+    //for bison
+    #include <stdio.h>
+    #include <iostream>
+    #include "encoding.h"
+    #include "utils.h"
+    #include "linux/elf.h"
 
-	using namespace std;
+    using namespace std;
 
-	//flex stuff bison needs
-	extern int yylex();
-	extern int yyparse();
-	extern FILE *yyin;
+    //flex stuff bison needs
+    extern int yylex();
+    extern int yyparse();
+    extern FILE *yyin;
 
-	void yyerror(const char *s);
-	//go from left to right
-	inst32_t instr;
+    void yyerror(const char *s);
+    //go from left to right
+    inst32_t instr;
+    Section currentSection;
 %}
 
 %union {
-	int			ival;
-	float 		fval;
-	char	   *sval;
+    int            ival;
+    float         fval;
+    char       *sval;
     int        token;
 }
 
@@ -48,73 +50,86 @@
 %%
 //actual grammar
 program:
-	statements
-	;
+    statements 
+    {
+        std::cout << "reading the section" << std::endl;
+        for (std::vector<uint32_t>::iterator it=currentSection.data.begin(); 
+             it != currentSection.data.end(); 
+             ++it){
+            std::cout << std::hex << *it << std::endl;
+        }
+    }
+    ;
 
 statements:
-	statement
-	| statement statements;
+    statement
+    | statement statements;
 
 statement:
-	 instruction  
-		{ 
-			cout<< "evaluating instruction" << endl; 
-			//cout<< "size of the instructions vector: " << instructions.size() << endl;
-		}
-	| directive    { cout << "evaluating a directive" << endl; }
+     instruction  
+        { 
+            cout<< ">> evaluating statement: instruction" << endl; 
+        }
+    | directive
+        { 
+            cout << ">> evaluating statement: directive" << endl;
+        }
     ;
 
 directive: 
-	SECTION TEXT
-	{
-		cout << "hardcoded .section .text" << endl;
-	}
-	| GLOBAL START {
-		cout << "hardcoded .globl .start" << endl;
-	} 
-	| LABEL {
-		cout << "identify the label: " << endl;
-	}
-	;
+    SECTION TEXT
+    {
+        cout << ">> hardcoded .section .text" << endl;
+        Section textSection;
+        currentSection = textSection;
+    }
+    | GLOBAL START {
+        cout << ">> hardcoded .globl .start" << endl;
+    } 
+    | LABEL {
+        cout << ">> identify the label: " << endl;
+    }
+    ;
 
 instruction:
-	operand register COMMA register COMMA register
-	{ 
-		cout << "evaluating instruction" << endl; 
-		instr.rs1 = $4;
-		instr.rs2 = $6;
-		//instructions.push_back(instr);
-		//instr = (inst32_t)0;
-		print_instruction_hex(instr);
-	}
-	| operand register COMMA register COMMA imm {
-		cout << "op r, r, imm" << endl;
-	}
-	;
+    operand register COMMA register COMMA register
+    { 
+        cout << ">>>> evaluating instruction" << endl; 
+        instr.rs1 = $4;
+        instr.rs2 = $6;
+
+        print_instruction_hex(instr);
+        currentSection.data.push_back(instr);
+        std::memset(&instr, 0, sizeof(instr));
+    }
+    | operand register COMMA register COMMA imm {
+        cout << ">>>> op r, r, imm" << endl;
+    }
+    ;
 
 operand:
-	ADD { 
-			cout << "ADD_OP" << endl; 
-			instr.opcode = 0b0110011; 
-		}
-	| SUB 
-		{
-			cout << "SUB_OP" << endl; 
-			instr.opcode = 0b0110100;
-		}
-	;
+    ADD { 
+            cout << ">>>>>> ADD_OP" << endl; 
+            instr.opcode = 0b0110011; 
+        }
+    | SUB 
+        {
+            cout << ">>>>>> SUB_OP" << endl; 
+            instr.opcode = 0b0110100;
+        }
+    ;
 
 register:
-	REG 
-		{ 
-			cout << "REG " << $1 << endl;
-			$$ = $1;
-		}
-	;
+    REG 
+        { 
+            cout << ">>>>>>>> REG " << $1 << endl;
+            $$ = $1;
+        }
+    ;
 imm:
-	IMM {
-		cout << "IMM " << $1 << endl;
-	}
+    IMM {
+        cout << ">>>>>>>> IMM " << $1 << endl;
+    }
 
 %%
 

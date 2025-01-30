@@ -8,6 +8,10 @@ typedef struct inst32_t {
 	unsigned rs1    :5;
 	unsigned rs2    :5;
 	unsigned funct7 :7;
+
+	operator uint32_t() const {
+        return (funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | opcode;
+	}
 } inst32_t;
 
 #endif
