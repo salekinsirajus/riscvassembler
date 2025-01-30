@@ -18,6 +18,8 @@
     //go from left to right
     inst32_t instr;
     Section currentSection;
+
+	ELF32 elfContent;
 %}
 
 %union {
@@ -58,6 +60,7 @@ program:
              ++it){
             std::cout << std::hex << *it << std::endl;
         }
+		write_empty_elf(elfContent, "out.data");
     }
     ;
 
