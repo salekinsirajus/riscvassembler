@@ -25,9 +25,6 @@
 [\n]             { ++linenum; charnum=0; }
 [\\n]            { ++linenum; charnum=0; }
 
-\."section"		 { return SECTION; }
-\.text			 { return TEXT; }
-
 "add"            { return ADD; }
 "addi"           { return ADD_IMM; }
 "and"            { return AND; }
@@ -36,33 +33,55 @@
 "sll"            { return SLL; }
 "slt"            { return SLT; }
 "xor"            { return XOR; }
+"li"             { return LOAD_IMM; }
+"ecall"          { return ECALL; }
+
 _[a-zA-Z0-9]*:   { return LABEL; }
+_[a-zA-A0-9]*    { return LABELLED; }
 
-[12][0-9]        { yylval.ival = atoi(&yytext[1]); return IMM; }
+"0"              { return yylval.ival = 0; return REG; }
+"zero"           { return yylval.ival = 0; return REG; }
 
-[rx][0-9]        { yylval.ival = atoi(&yytext[1]); return REG; }
+[1-9]?[0-9]      {
+                    //TODO: plain it?
+                    yylval.ival = atoi(&yytext[1]);
+                    return IMM;
+                 }
+[arx][0-9]       { yylval.ival = atoi(&yytext[1]); return REG; }
+\."section"      { return SECTION; }
+\."text"         { return D_TEXT; }
+\."data"         { return D_DATA; }
+\."rodata"       { return D_RODATA; }
+\."bss"          { return D_BSS; }
+\."size"         { return D_SIZE; }
+\."globl"        { return D_GLOBAL; }
+\."ascii"        { return D_ASCII; }
+
+\.[a-zA-Z0-9]*   { return DIRECTIVE_COMMAND; }
+\"([^\"]*)\"     { yylval.sval = strdup(yytext);  return STRING; }
 ,                { return COMMA; }
 .                { cout << "Line "<< linenum << ": char " << charnum << ", unknown token. (" << yytext << ")" << endl; }
 %%
 
 int main(int argc, char** argv){
+
     if (argc < 2){
         cout << "No source file passed\n" << endl;
-        cout << "Usage: " << argv[0] << " file.c" << endl;
+        cout << "Usage: " << argv[0] << " file.s" << endl;
         return 1;
     }
     FILE *src = fopen(argv[1], "r");
     if (!src){
         cout << "Error: Cannot open file " << argv[1] << endl;
         return -1; //really -1?
-    }        
+    }
 
     // Set lex to read from the file instead of STDIN
     yyin = src;
-    
+
     yyparse();
     while(yylex());
-    
+
     //close file
     fclose(src);
 

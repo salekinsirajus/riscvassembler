@@ -18,7 +18,7 @@
     //go from left to right
     inst32_t instr;
     Section currentSection;
-	ELF32 elfContent;
+    ELF32 elfContent;
 %}
 
 %union {
@@ -32,6 +32,8 @@
 %token <token> ADD ADD_IMM
 %token <token> SUB SUB_IMM
 %token <token> SLL SLT AND XOR
+%token <token> LOAD_IMM
+%token <token> ECALL
 
 %token <token> REG
 %token <token> COMMA
@@ -39,27 +41,31 @@
 %token <ival>  IMM
 
 %token <token> SECTION
+%token <token> DIRECTIVE_COMMAND
 %token <token> TEXT
-%token <token> GLOBAL
-%token <token> START 
-%token <token> LABEL
+%token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
+%token <token> D_ASCII
+%token <token> LABEL LABELLED
+%token <token> ID
 
 //non-terminals
+%token <sval> STRING
 %type <ival> register;
 %type <ival> imm;
 
 %%
 //actual grammar
+//the rhs stuff are 1-indexed
 program:
-    statements 
+    statements
     {
         std::cout << "reading the section" << std::endl;
-        for (std::vector<uint32_t>::iterator it=currentSection.data.begin(); 
-             it != currentSection.data.end(); 
+        for (std::vector<uint32_t>::iterator it=currentSection.data.begin();
+             it != currentSection.data.end();
              ++it){
             std::cout << std::hex << *it << std::endl;
         }
-		write_empty_elf(elfContent, "out.data");
+        write_empty_elf(elfContent, "out.data");
     }
     ;
 
@@ -68,38 +74,67 @@ statements:
     | statement statements;
 
 statement:
-     instruction  
-        { 
-            cout<< ">> evaluating statement: instruction" << endl; 
+     instruction
+        {
+            cout<< ">> evaluating statement: instruction" << endl;
         }
     | directive
-        { 
+        {
             cout << ">> evaluating statement: directive" << endl;
         }
     ;
 
-directive: 
-    SECTION TEXT
+directive:
+    SECTION D_TEXT
     {
         cout << ">> hardcoded .section .text" << endl;
         Section textSection;
         currentSection = textSection;
-		Elf32_Shdr currentSectionHeader;
-		currentSectionHeader.sh_type = SHT_PROGBITS; 
-		elfContent.section_headers.push_back(currentSectionHeader);
+        Elf32_Shdr currentSectionHeader;
+        currentSectionHeader.sh_type = SHT_PROGBITS;
+        elfContent.section_headers.push_back(currentSectionHeader);
     }
-    | GLOBAL START {
-        cout << ">> hardcoded .globl .start" << endl;
-    } 
-    | LABEL {
-        cout << ">> identify the label: " << endl;
+    | SECTION D_DATA
+    {
+        std::cout << "section .data" << std::endl;
+    }
+    | D_GLOBAL ID
+    {
+        std::cout << ".globl LABEL" << std::endl;
+    }
+    | D_TEXT
+    {
+        std::cout << ".text (emit and make current) " << std::endl;
+    }
+    | D_DATA
+    {
+        std::cout << ".data (emit and make current) " << std::endl;
+    }
+    | D_ASCII STRING
+    {
+        printf("Store this string: %s\n", $2);
+        //find the .data section and store in there
+    }
+    | LABEL instruction
+    {
+        std::cout << "no newline after label " << std::endl;
+    }
+    | LABEL
+    {
+        //_loop:
+        //    ...instructions
+        std::cout << ">> identify the label: " << std::endl;
+    }
+    | DIRECTIVE_COMMAND STRING
+    {
+        std::cout << "general purpose handling directive " << std::endl;
     }
     ;
 
 instruction:
     operand register COMMA register COMMA register
-    { 
-        //cout << ">>>> evaluating instruction" << endl; 
+    {
+        //cout << ">>>> evaluating instruction" << endl;
         instr.rs1 = $4;
         instr.rs2 = $6;
 
@@ -107,27 +142,26 @@ instruction:
         currentSection.data.push_back(instr);
         std::memset(&instr, 0, sizeof(instr));
     }
-    | operand register COMMA register COMMA imm 
-	{
+    | operand register COMMA register COMMA imm
+    {
         //cout << ">>>> op r, r, imm" << endl;
     }
     ;
 
 operand:
-    ADD { 
-            //cout << ">>>>>> ADD_OP" << endl; 
-            instr.opcode = 0b0110011; 
+    ADD {
+            instr.opcode = 0b0110011;
         }
-    | SUB 
+    | SUB
         {
-            //cout << ">>>>>> SUB_OP" << endl; 
+            //cout << ">>>>>> SUB_OP" << endl;
             instr.opcode = 0b0110100;
         }
     ;
 
 register:
-    REG 
-        { 
+    REG
+        {
             //cout << ">>>>>>>> REG " << $1 << endl;
             $$ = $1;
         }
