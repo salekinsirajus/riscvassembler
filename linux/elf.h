@@ -211,5 +211,6 @@ typedef struct ELF32 {
 } ELF32;
 
 void write_empty_elf(ELF32& elf, std::string filename);
+void initialize_elf(ELF32& elf);
 
 #endif

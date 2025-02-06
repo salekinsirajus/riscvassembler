@@ -63,30 +63,3 @@ _[a-zA-A0-9]*    { return LABELLED; }
 .                { cout << "Line "<< linenum << ": char " << charnum << ", unknown token. (" << yytext << ")" << endl; }
 %%
 
-int main(int argc, char** argv){
-
-    if (argc < 2){
-        cout << "No source file passed\n" << endl;
-        cout << "Usage: " << argv[0] << " file.s" << endl;
-        return 1;
-    }
-    FILE *src = fopen(argv[1], "r");
-    if (!src){
-        cout << "Error: Cannot open file " << argv[1] << endl;
-        return -1; //really -1?
-    }
-
-    // Set lex to read from the file instead of STDIN
-    yyin = src;
-
-    yyparse();
-    while(yylex());
-
-    //close file
-    fclose(src);
-
-    //std::string dst = "out.data";
-    //write_empty_elf(dst);
-
-    return 0;
-}
