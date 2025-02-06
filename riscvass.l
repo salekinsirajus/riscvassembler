@@ -58,6 +58,7 @@ _[a-zA-A0-9]*    { return LABELLED; }
 \."ascii"        { return D_ASCII; }
 
 \.[a-zA-Z0-9]*   { return DIRECTIVE_COMMAND; }
+[a-zA-Z0-9]*:    { return ASSIGNMENT; }
 \"([^\"]*)\"     { yylval.sval = strdup(yytext);  return STRING; }
 ,                { return COMMA; }
 .                { cout << "Line "<< linenum << ": char " << charnum << ", unknown token. (" << yytext << ")" << endl; }

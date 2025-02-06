@@ -46,7 +46,8 @@
 %token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
 %token <token> D_ASCII
 %token <token> LABEL LABELLED
-%token <token> ID
+%token <token> ID 
+%token <token> ASSIGNMENT
 
 //non-terminals
 %token <sval> STRING
@@ -114,6 +115,11 @@ directive:
     {
         printf("Store this string: %s\n", $2);
         //find the .data section and store in there
+    }
+    | ASSIGNMENT D_ASCII STRING
+    {
+		//perhaps this can be merged with the above?
+        printf("assign this string to the var %s\n", $3);
     }
     | LABEL instruction
     {
