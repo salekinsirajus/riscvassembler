@@ -115,12 +115,20 @@ enum : unsigned {
 #define SHF_ORDERED	     (1 << 30)	/* Special ordering requirement (Solaris).  */
 #define SHF_EXCLUDE	     (1U << 31)	/* Section is excluded unless referenced or allocated (Solaris).*/
 
-//The following stuff are for 32-bit little-endian
+//for 32-bit 
 typedef uint16_t Elf32_Half;   /* unsigned half int */
 typedef uint32_t Elf32_Off;    /* unsigned offset */
 typedef uint32_t Elf32_Addr;   /* unsigned address */
 typedef uint32_t Elf32_Word;   /* unsigned word */
 typedef int32_t  Elf32_Sword;  /* signed word */
+//for 64-bit 
+typedef uint16_t Elf64_Half;
+typedef uint64_t Elf64_Off;
+typedef uint64_t Elf64_Addr;
+typedef uint32_t Elf64_Word;
+typedef  int32_t Elf64_Sword;
+typedef uint64_t Elf64_Xword;
+typedef  int64_t Elf64_Sxword;
 
 #define ELF_NIDENT 16
 typedef struct {
@@ -198,16 +206,43 @@ typedef struct Elf32_Shdr
   Elf32_Word    sh_entsize;      /* Entry size if section holds table */
 } Elf32_Shdr;
 
+// symbol table
+typedef struct {
+	Elf32_Word	st_name;
+	Elf32_Addr	st_value;
+	Elf32_Word	st_size;
+	unsigned char	st_info;
+	unsigned char	st_other;
+	Elf32_Half	st_shndx;
+} Elf32_Sym;
+
+typedef struct {
+	Elf64_Word	st_name;
+	unsigned char	st_info;
+	unsigned char	st_other;
+	Elf64_Half	st_shndx;
+	Elf64_Addr	st_value;
+	Elf64_Xword	st_size;
+} Elf64_Sym;
+
 typedef struct Section {
     std::vector<uint32_t> data;
     uint8_t label;
 } Section;
 
+//what we need for the assembler and what we dont need
+// Relocatable object files do not need a program header table. (solaris)
+// A relocateble object must have a section header table
 typedef struct ELF32 {
-    Elf32_Ehdr elf_header;                   /* ELF File Header  */
-    std::vector<Elf32_Phdr> program_headers; /* Program Headers  */
-    std::vector<Elf32_Shdr> section_headers; /* Section Headers  */
-    std::vector<Section>    sections;        /* Sections         */
+    Elf32_Ehdr elf_header;                   /* ELF File Header        */
+    std::vector<Elf32_Phdr> program_headers; /* Program Headers (opt)  */
+    std::vector<Elf32_Shdr> section_headers; /* Section Headers (req)  */
+    std::vector<Section>    sections;        /* Sections               */
+
+    Section*                data;            /* ptr to data            */
+    Section*                bss;             /* ptr to bss             */
+    Section*                rodata;          /* ptr to rodata          */
+    Section*                text;            /* ptr to code            */
 } ELF32;
 
 void write_empty_elf(ELF32& elf, std::string filename);

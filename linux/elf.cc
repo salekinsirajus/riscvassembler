@@ -52,6 +52,11 @@ void initialize_elf(ELF32& elf) {
     /*================ Program Header END ==============*/
 
     elf.program_headers.push_back(prog_header);
+
+	elf.data   = nullptr;
+	elf.text   = nullptr;
+	elf.bss    = nullptr;
+	elf.rodata = nullptr;
 }
 
 

@@ -113,12 +113,13 @@ directive:
     }
     | D_ASCII STRING
     {
+        //this will most likely be stored in the strtab
+		//also in the symbol table
         printf("Store this string: %s\n", $2);
-        //find the .data section and store in there
     }
     | ASSIGNMENT D_ASCII STRING
     {
-		//perhaps this can be merged with the above?
+		//same as above
         printf("assign this string to the var %s\n", $3);
     }
     | LABEL instruction
