@@ -9,7 +9,6 @@
 void initialize_elf(ELF32& elf) {
     Elf32_Ehdr& elf_header = elf.elf_header;
     memset(&elf_header, 0, sizeof(elf_header));
-
     /*=============== ELF Header START ===============*/
     elf_header.e_ident[0] = 0x7f;
     elf_header.e_ident[1] = 'E';
@@ -24,12 +23,12 @@ void initialize_elf(ELF32& elf) {
     // TODO Entry point
     elf_header.e_entry = 0;
     // TODO Program header table offset
-    elf_header.e_phoff = sizeof(Elf32_Ehdr);
+    elf_header.e_phoff = 0;
     // TODO Section header table offset
     elf_header.e_shoff = 0;
     elf_header.e_flags = 0;
     //Usually 64 bytes in 64-bit ELF and 52 bytes for 32 bits)
-    elf_header.e_ehsize = sizeof(Elf32_Ehdr); 
+    elf_header.e_ehsize = sizeof(Elf32_Ehdr); //52
     elf_header.e_phentsize = sizeof(Elf32_Phdr);
     elf_header.e_phnum = 1;           // Number of program headers
     elf_header.e_shentsize = sizeof(Elf32_Shdr); 
@@ -57,8 +56,34 @@ void initialize_elf(ELF32& elf) {
 	elf.text   = nullptr;
 	elf.bss    = nullptr;
 	elf.rodata = nullptr;
+
+	initialize_symbol_table(elf);
+	initialize_string_table(elf);
 }
 
+void initialize_symbol_table(ELF32& elf){
+	Elf32_Shdr symtab_sh;
+	std::memset(&symtab_sh, 0, sizeof(Elf32_Shdr));
+	symtab_sh.sh_size = 12; 	//TODO: placeholder
+	symtab_sh.sh_type = SHT_SYMTAB;
+	
+	elf.section_headers.push_back(symtab_sh);
+	elf.elf_header.e_shnum += 1; //make sure its posivite
+
+	Elf32_Sym undefined;
+	std::memset(&undefined, 0, sizeof(Elf32_Sym));
+}
+
+void initialize_string_table(ELF32& elf){
+	Elf32_Shdr strtab_sh;
+	std::memset(&strtab_sh, 0, sizeof(Elf32_Shdr));
+	strtab_sh.sh_size = 10;		//TODO: placeholder
+	strtab_sh.sh_type = SHT_STRTAB;
+
+	elf.section_headers.push_back(strtab_sh);
+	elf.elf_header.e_shnum += 1;
+	//anything else?
+}
 
 void write_empty_elf(ELF32& elf, std::string filename) {
     std::ofstream elf_file(filename, std::ios::out | std::ios::binary);
@@ -68,26 +93,22 @@ void write_empty_elf(ELF32& elf, std::string filename) {
         return;
     }
 
-    // Write headers to file
+    // Write ELF header
+std::cout << "size of elf_header beofre writing" << sizeof(&elf.elf_header) << ", "  <<sizeof(elf.elf_header) << std::endl;
     elf_file.write(
-		reinterpret_cast<const char*>(&elf.elf_header), sizeof(&elf.elf_header)
+		reinterpret_cast<const char*>(&(elf.elf_header)), sizeof(Elf32_Ehdr)
 	);
-    
-    for (
-         std::vector<Elf32_Phdr>::iterator it=elf.program_headers.begin();
-         it != elf.program_headers.end();
-         ++it
-        ){
-            elf_file.write(
-                reinterpret_cast<const char*>(&(*it)), sizeof(&(*it))
-         );
-    }
+	// Program headers (since they are optional, we are skipping them)
 
-	for (
-         std::vector<Elf32_Shdr>::iterator it=elf.section_headers.begin();
-		 it != elf.section_headers.end(); 
-         ++it
-    ){
+	// Then Sections
+	for (std::vector<Section>::iterator it=elf.sections.begin(); it != elf.sections.end(); ++it){
+		elf_file.write(
+			reinterpret_cast<const char*>(&(*it).data), sizeof(&(*it).data)
+		);
+	}
+
+	// Then Section Headers
+	for (std::vector<Elf32_Shdr>::iterator it=elf.section_headers.begin(); it != elf.section_headers.end(); ++it){
 		elf_file.write(
 			reinterpret_cast<const char*>(&(*it)), sizeof(&(*it))
 		);

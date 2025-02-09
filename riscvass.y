@@ -116,6 +116,8 @@ directive:
         //this will most likely be stored in the strtab
 		//also in the symbol table
         printf("Store this string: %s\n", $2);
+		Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
+		elfContent.symtab.push_back(currentString);
     }
     | ASSIGNMENT D_ASCII STRING
     {

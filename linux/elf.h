@@ -39,16 +39,19 @@ enum {
   ET_HIPROC = 0xffff  // Processor-specific
 };
 
-enum Elf_Ident {
-    EI_MAG0        = 0,              // 0x7F
-    EI_MAG1     = 1,              // 'E'
-    EI_MAG2     = 2,              // 'L'
-    EI_MAG3     = 3,              // 'F'
-    EI_CLASS     = 4,             // Arch (32/64)
-    EI_DATA        = 5,             // Byte Order
-    EI_OSABI    = 7,             // OS Specific
-    EI_ABIVERSION=8,             // OS Specific
-    EI_PAD        = 9                 // Padding
+// e_ident size and indices.
+enum {
+  EI_MAG0 = 0,       // File identification index.
+  EI_MAG1 = 1,       // File identification index.
+  EI_MAG2 = 2,       // File identification index.
+  EI_MAG3 = 3,       // File identification index.
+  EI_CLASS = 4,      // File class.
+  EI_DATA = 5,       // Data encoding.
+  EI_VERSION = 6,    // File version.
+  EI_OSABI = 7,      // OS/ABI identification.
+  EI_ABIVERSION = 8, // ABI version.
+  EI_PAD = 9,        // Start of padding bytes.
+  EI_NIDENT = 16     // Number of bytes in e_ident.
 };
 
 // Segment flag bits.
@@ -162,21 +165,22 @@ typedef struct {
 
 /* for 32-bit */
 /* ELF Header */
-typedef struct {
-    uint8_t e_ident[16];
-    uint16_t e_type;
-    uint16_t e_machine;
-    uint32_t e_version;
-    uint32_t e_entry;
-    uint32_t e_phoff;
-    uint32_t e_shoff;
-    uint32_t e_flags;
-    uint16_t e_ehsize;
-    uint16_t e_phentsize;
-    uint16_t e_phnum;
-    uint16_t e_shentsize;
-    uint16_t e_shnum;
-    uint16_t e_shstrndx;
+//from llvm - https://llvm.org/doxygen/BinaryFormat_2ELF_8h_source.html
+typedef struct Elf32_Ehdr {
+  unsigned char e_ident[EI_NIDENT]; // ELF Identification bytes
+  Elf32_Half e_type;                // Type of file (see ET_* below)
+  Elf32_Half e_machine;   // Required architecture for this file (see EM_*)
+  Elf32_Word e_version;   // Must be equal to 1
+  Elf32_Addr e_entry;     // Address to jump to in order to start program
+  Elf32_Off  e_phoff;     // Program header table's file offset, in bytes
+  Elf32_Off  e_shoff;     // Section header table's file offset, in bytes
+  Elf32_Word e_flags;     // Processor-specific flags
+  Elf32_Half e_ehsize;    // Size of ELF header, in bytes
+  Elf32_Half e_phentsize; // Size of an entry in the program header table
+  Elf32_Half e_phnum;     // Number of entries in the program header table
+  Elf32_Half e_shentsize; // Size of an entry in the section header table
+  Elf32_Half e_shnum;     // Number of entries in the section header table
+  Elf32_Half e_shstrndx;  // Sect hdr table index of sect name string table
 } Elf32_Ehdr;
 
 /* Program Header */
@@ -238,6 +242,7 @@ typedef struct ELF32 {
     std::vector<Elf32_Phdr> program_headers; /* Program Headers (opt)  */
     std::vector<Elf32_Shdr> section_headers; /* Section Headers (req)  */
     std::vector<Section>    sections;        /* Sections               */
+    std::vector<Elf32_Sym>  symtab;          /* symbol table           */
 
     Section*                data;            /* ptr to data            */
     Section*                bss;             /* ptr to bss             */
@@ -247,5 +252,7 @@ typedef struct ELF32 {
 
 void write_empty_elf(ELF32& elf, std::string filename);
 void initialize_elf(ELF32& elf);
+void initialize_symbol_table(ELF32& elf);
+void initialize_string_table(ELF32& elf);
 
 #endif
