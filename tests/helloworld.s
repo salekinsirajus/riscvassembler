@@ -1,18 +1,20 @@
-.global _start
+.global _start      # Provide program starting address to linker
 
-_start:
-	# stdout = (fd) 1
-	addi a7, zero, 64
-	addi a0, zero, 1
-	la a1, helloworld
-	addi a2, zero, 15
-	ecall
+# Setup the parameters to print hello world
+# and then call Linux to do it.
 
-	# Exit with code 13
-	addi a7, zero, 93
-	addi a0, zero, 13
-	ecall
+_start: addi  a0, x0, 1      # 1 = StdOut
+        la    a1, helloworld # load address of helloworld
+        addi  a2, x0, 13     # length of our string
+        addi  a7, x0, 64     # linux write system call
+        ecall                # Call linux to output the string
 
+# Setup the parameters to exit the program
+# and then call Linux to do it.
 
-helloworld:
-	.ascii "Hello, World!\n"
+        addi    a0, x0, 0   # Use 0 return code
+        addi    a7, x0, 93  # Service command code 93 terminates
+        ecall               # Call linux to terminate the program
+
+.data
+helloworld:      .ascii "Hello World!\n"
