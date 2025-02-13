@@ -20,7 +20,9 @@ void initialize_elf(ELF32& elf) {
     elf_header.e_type = ET_REL;       // Object file
     elf_header.e_machine = 0xF3;      // RISC-V (0xF3)
     elf_header.e_version = 1;         // ELF version
-    // TODO Entry point
+    // TODO Entry point - does an assembler make the decision
+	// to set the entry point, such as _main? Generally, it
+	// is the beginning of the text section
     elf_header.e_entry = 0;
     // TODO Program header table offset
     elf_header.e_phoff = 0;
@@ -94,7 +96,6 @@ void write_empty_elf(ELF32& elf, std::string filename) {
     }
 
     // Write ELF header
-std::cout << "size of elf_header beofre writing" << sizeof(&elf.elf_header) << ", "  <<sizeof(elf.elf_header) << std::endl;
     elf_file.write(
 		reinterpret_cast<const char*>(&(elf.elf_header)), sizeof(Elf32_Ehdr)
 	);
@@ -113,6 +114,17 @@ std::cout << "size of elf_header beofre writing" << sizeof(&elf.elf_header) << "
 			reinterpret_cast<const char*>(&(*it)), sizeof(&(*it))
 		);
 	}
+
+	// TODO: Update all the offsets here
+	/*
+	size_t sh_offset = sizeof(Elf32_Ehdr);
+	for (std::vector<Section>::iterator it=elf.sections.begin(); it != elf.sections.end(); ++it){
+		sh_offset += it->data.size();
+		std::cout << "it->data.size(): " << it->data.size() << std::endl;
+	}
+	elf.elf_header.e_shoff = (sh_offset / sizeof(const char));
+	std::cout << "e_shoff: " << elf.elf_header.e_shoff << std::endl;
+	*/
 
     elf_file.close();
 

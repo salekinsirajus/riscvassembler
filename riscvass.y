@@ -72,14 +72,14 @@ program:
 
 statements:
     statement
-    | statement statements;
+    | statements statement;
 
 statement:
-     instruction
+     LABEL instructions
         {
             cout<< ">> evaluating statement: instruction" << endl;
         }
-    | directive
+    | LABEL directive
         {
             cout << ">> evaluating statement: directive" << endl;
         }
@@ -92,8 +92,10 @@ directive:
         Section textSection;
         currentSection = textSection;
         Elf32_Shdr currentSectionHeader;
+
         currentSectionHeader.sh_type = SHT_PROGBITS;
         elfContent.section_headers.push_back(currentSectionHeader);
+		elfContent.text = &textSection;
     }
     | SECTION D_DATA
     {
@@ -124,21 +126,12 @@ directive:
 		//same as above
         printf("assign this string to the var %s\n", $3);
     }
-    | LABEL instruction
-    {
-        std::cout << "no newline after label " << std::endl;
-    }
-    | LABEL
-    {
-        //_loop:
-        //    ...instructions
-        std::cout << ">> identify the label: " << std::endl;
-    }
-    | DIRECTIVE_COMMAND STRING
-    {
-        std::cout << "general purpose handling directive " << std::endl;
-    }
     ;
+
+instructions:
+	instruction
+	| instructions instruction
+	;
 
 instruction:
     operand register COMMA register COMMA register
@@ -148,7 +141,15 @@ instruction:
         instr.rs2 = $6;
 
         //print_instruction_hex(instr);
-        currentSection.data.push_back(instr);
+		if (!elfContent.text){
+			Section text;
+			Elf32_Shdr text_sh;
+			text_sh.sh_type = SHT_PROGBITS;
+			elfContent.section_headers.push_back(text_sh);
+			elfContent.text = &text;
+		}
+
+        elfContent.text->data.push_back(instr);
         std::memset(&instr, 0, sizeof(instr));
     }
     | operand register COMMA register COMMA imm
