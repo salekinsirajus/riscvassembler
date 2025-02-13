@@ -24,16 +24,44 @@
 "#".*            {; /* ignore everything this line */ }
 [\n]             { ++linenum; charnum=0; }
 [\\n]            { ++linenum; charnum=0; }
+"("              { return PAREN_OPEN; }
+")"              { return PAREN_CLOSE; }
 
 "add"            { return ADD; }
-"addi"           { return ADD_IMM; }
+"addi"           { return ADDI; }
 "and"            { return AND; }
 "sub"            { return SUB; }
-"subi"           { return SUB_IMM; }
+"subi"           { return SUBI; }
+"li"             { return LI; }
+"beq"            { return BEQ; }
+"bge"            { return BGE; }
+"bgeu"           { return BGEU; }
+"blt"            { return BLT; }
+"bltu"           { return BLTU; }
+"bne"            { return BNE; }
+"lb"             { return LB; }
+"lbu"            { return LBU; }
+"lh"             { return LH; }
+"lhu"            { return LHU; }
+"lw"             { return LW; }
+"or"             { return OR; }
+"ori"            { return ORI; }
+"sb"             { return SB; }
+"sh"             { return SH; }
 "sll"            { return SLL; }
+"slli"           { return SLLI; }
 "slt"            { return SLT; }
+"slti"           { return SLTI; }
+"sltiu"          { return SLTIU; }
+"sltu"           { return SLTU; }
+"sra"            { return SRA; }
+"srai"           { return SRAI; }
+"srl"            { return SRL; }
+"srli"           { return SRLI; }
+"sw"             { return SW; }
 "xor"            { return XOR; }
-"li"             { return LOAD_IMM; }
+"xori"           { return XORI; }
+
 "ecall"          { return ECALL; }
 
 _[a-zA-Z0-9]*:   { return LABEL; }
@@ -43,7 +71,7 @@ _[a-zA-A0-9]*    { return LABELLED; }
 "zero"           { return yylval.ival = 0; return REG; }
 
 [1-9]?[0-9]      {
-                    //TODO: plain it?
+                    //TODO:  need to differentiate bw imm vs offset
                     yylval.ival = atoi(&yytext[1]);
                     return IMM;
                  }

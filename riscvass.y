@@ -29,16 +29,18 @@
 }
 
 //Terminal symbols
-%token <token> ADD ADD_IMM
-%token <token> SUB SUB_IMM
-%token <token> SLL SLT AND XOR
-%token <token> LOAD_IMM
+%token <token> ADD ADDI AND SUB SUBI LI BEQ BGE BGEU
+%token <token> BLT BLTU BNE LB LBU LH LHU LW OR ORI 
+%token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA 
+%token <token> SRAI SRL SRLI SW XOR XORI
+ 
 %token <token> ECALL
 
 %token <token> REG
 %token <token> COMMA
 %token <token> COLON
 %token <ival>  IMM
+%token <token> PAREN_OPEN PAREN_CLOSE
 
 %token <token> SECTION
 %token <token> DIRECTIVE_COMMAND
@@ -134,9 +136,11 @@ instructions:
 	;
 
 instruction:
-    operand register COMMA register COMMA register
+    opcode register COMMA register COMMA register
     {
-        //cout << ">>>> evaluating instruction" << endl;
+        //R-format
+		//ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
+		std::cout << "R-format instruction " << std::endl;
         instr.rs1 = $4;
         instr.rs2 = $6;
 
@@ -152,13 +156,19 @@ instruction:
         elfContent.text->data.push_back(instr);
         std::memset(&instr, 0, sizeof(instr));
     }
-    | operand register COMMA register COMMA imm
+    | opcode register COMMA register COMMA imm
     {
         //cout << ">>>> op r, r, imm" << endl;
+		//ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
+		std::cout << "I-format instruction" << std::endl;
     }
+	| opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
+	{
+		std::cout << "S-format instruction " << std::endl;
+	}
     ;
 
-operand:
+opcode:
     ADD {
             instr.opcode = 0b0110011;
         }
