@@ -61,6 +61,27 @@ void initialize_elf(ELF32& elf) {
 
 	initialize_symbol_table(elf);
 	initialize_string_table(elf);
+	initialize_text_section(elf);
+}
+
+void initialize_data_section(ELF32& elf){
+	if (!elf.data){
+		Section data;
+		Elf32_Shdr data_sh;
+		data_sh.sh_type = SHT_PROGBITS;
+		elf.section_headers.push_back(data_sh);
+		elf.data = &data;
+	}
+}
+
+void initialize_text_section(ELF32& elf){
+    if (!elf.text){
+        Section text;
+        Elf32_Shdr text_sh;
+        text_sh.sh_type = SHT_PROGBITS;
+        elf.section_headers.push_back(text_sh);
+        elf.text = &text;
+    }
 }
 
 void initialize_symbol_table(ELF32& elf){

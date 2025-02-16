@@ -67,7 +67,6 @@
 
 _[a-zA-Z0-9]*   { return LABEL; }
 
-"0"              { return yylval.ival = 0; return REG; }
 "zero"           { return yylval.ival = 0; return REG; }
 
 [1-9]?[0-9]      {

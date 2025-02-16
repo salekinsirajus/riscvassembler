@@ -87,7 +87,7 @@ statement:
     }
 	| directive 
 	{
-		cout << "just a directive? We gotta fix this directiv crap " << std::endl;		
+		cout << ">> evaluating directive" << std::endl;		
 	}
     ;
 
@@ -107,6 +107,7 @@ directive:
     | D_DATA
     {
         std::cout << ".data (emit and make current) " << std::endl;
+		initialize_data_section(elfContent);
     }
     | D_ASCII STRING
     {
@@ -135,15 +136,6 @@ instruction:
         instr.rs1 = $4;
         instr.rs2 = $6;
 
-        //print_instruction_hex(instr);
-		if (!elfContent.text){
-			Section text;
-			Elf32_Shdr text_sh;
-			text_sh.sh_type = SHT_PROGBITS;
-			elfContent.section_headers.push_back(text_sh);
-			elfContent.text = &text;
-		}
-
         elfContent.text->data.push_back(instr);
         std::memset(&instr, 0, sizeof(instr));
     }
@@ -152,6 +144,9 @@ instruction:
         //cout << ">>>> op r, r, imm" << endl;
 		//ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
 		std::cout << "I-format instruction" << std::endl;
+		instr.rs1 = $4;
+		instr.rs2 = $6; 	//this is most likely different from r-type
+		elfContent.text->data.push_back(instr);
     }
 	| opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
 	{

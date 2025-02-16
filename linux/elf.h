@@ -254,5 +254,7 @@ void write_empty_elf(ELF32& elf, std::string filename);
 void initialize_elf(ELF32& elf);
 void initialize_symbol_table(ELF32& elf);
 void initialize_string_table(ELF32& elf);
+void initialize_text_section(ELF32& elf);
+void initialize_data_section(ELF32& elf);
 
 #endif
