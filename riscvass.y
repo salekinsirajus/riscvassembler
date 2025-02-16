@@ -47,7 +47,7 @@
 %token <token> TEXT
 %token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
 %token <token> D_ASCII
-%token <token> LABEL LABELLED
+%token <token> LABEL
 %token <token> ID 
 %token <token> ASSIGNMENT
 
@@ -77,33 +77,26 @@ statements:
     | statements statement;
 
 statement:
-     LABEL instructions
-        {
-            cout<< ">> evaluating statement: instruction" << endl;
-        }
+     LABEL COLON instructions
+    {
+        cout<< ">> evaluating statement: instruction" << endl;
+    }
     | LABEL directive
-        {
-            cout << ">> evaluating statement: directive" << endl;
-        }
+    {
+        cout << ">> evaluating statement: directive" << endl;
+    }
+	| directive 
+	{
+		cout << "just a directive? We gotta fix this directiv crap " << std::endl;		
+	}
     ;
 
 directive:
-    SECTION D_TEXT
-    {
-        cout << ">> hardcoded .section .text" << endl;
-        Section textSection;
-        currentSection = textSection;
-        Elf32_Shdr currentSectionHeader;
-
-        currentSectionHeader.sh_type = SHT_PROGBITS;
-        elfContent.section_headers.push_back(currentSectionHeader);
-		elfContent.text = &textSection;
-    }
-    | SECTION D_DATA
+     SECTION D_DATA
     {
         std::cout << "section .data" << std::endl;
     }
-    | D_GLOBAL ID
+    | D_GLOBAL LABEL
     {
         std::cout << ".globl LABEL" << std::endl;
     }
@@ -117,8 +110,6 @@ directive:
     }
     | D_ASCII STRING
     {
-        //this will most likely be stored in the strtab
-		//also in the symbol table
         printf("Store this string: %s\n", $2);
 		Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
 		elfContent.symtab.push_back(currentString);
@@ -166,29 +157,41 @@ instruction:
 	{
 		std::cout << "S-format instruction " << std::endl;
 	}
+	| ECALL
+	{
+        std::cout << "ecall (syscall) invocation" << std::endl;
+	}
     ;
 
 opcode:
-    ADD {
-            instr.opcode = 0b0110011;
-        }
+    ADD 
+    {
+        instr.opcode = 0b0110011;
+    }
     | SUB
-        {
-            //cout << ">>>>>> SUB_OP" << endl;
-            instr.opcode = 0b0110100;
-        }
+	{
+		instr.opcode = 0b0110100;
+	}
+	| ADDI 
+	{
+		instr.opcode = 0b1101111;
+	}
+	| ECALL
+	{
+		instr.opcode = 0b1111111;
+	}
     ;
 
 register:
     REG
-        {
-            //cout << ">>>>>>>> REG " << $1 << endl;
-            $$ = $1;
-        }
+	{
+		$$ = $1;
+	}
     ;
 imm:
     IMM {
         //cout << ">>>>>>>> IMM " << $1 << endl;
+		$$ = $1;
     }
 
 %%

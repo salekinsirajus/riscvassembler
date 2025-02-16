@@ -26,6 +26,7 @@
 [\\n]            { ++linenum; charnum=0; }
 "("              { return PAREN_OPEN; }
 ")"              { return PAREN_CLOSE; }
+":"              { return COLON; }
 
 "add"            { return ADD; }
 "addi"           { return ADDI; }
@@ -64,8 +65,7 @@
 
 "ecall"          { return ECALL; }
 
-_[a-zA-Z0-9]*:   { return LABEL; }
-_[a-zA-A0-9]*    { return LABELLED; }
+_[a-zA-Z0-9]*   { return LABEL; }
 
 "0"              { return yylval.ival = 0; return REG; }
 "zero"           { return yylval.ival = 0; return REG; }
@@ -82,7 +82,7 @@ _[a-zA-A0-9]*    { return LABELLED; }
 \."rodata"       { return D_RODATA; }
 \."bss"          { return D_BSS; }
 \."size"         { return D_SIZE; }
-\."globl"        { return D_GLOBAL; }
+\.glob[a]?l      { return D_GLOBAL; }
 \."ascii"        { return D_ASCII; }
 
 \.[a-zA-Z0-9]*   { return DIRECTIVE_COMMAND; }
