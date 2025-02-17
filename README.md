@@ -21,10 +21,11 @@ the content.
 
 ## Limitations
 aka the work in progress
-- [ ] initialize symbol table and string table
-- [ ] add entry to the symtab and strtab
+- [x] initialize symbol table and string table
+- [x] add entry to the strtab
+- [ ] add entry to the symtab
 - [ ] address/ref resolution (single or multi-pass?)
 - [ ] implement all instruction formats
-- [ ] proper offset calculation
+- [~] proper offset calculation
 - [ ] relocation info
 - [ ] directive support
