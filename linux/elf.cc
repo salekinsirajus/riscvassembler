@@ -67,6 +67,8 @@ void initialize_elf(ELF32& elf) {
 void initialize_data_section(ELF32& elf){
 	if (!elf.data){
 		Section data;
+		elf.sections.push_back(data);
+
 		Elf32_Shdr data_sh;
 		data_sh.sh_type = SHT_PROGBITS;
 		elf.section_headers.push_back(data_sh);
@@ -77,6 +79,8 @@ void initialize_data_section(ELF32& elf){
 void initialize_text_section(ELF32& elf){
     if (!elf.text){
         Section text;
+		elf.sections.push_back(text);
+
         Elf32_Shdr text_sh;
         text_sh.sh_type = SHT_PROGBITS;
         elf.section_headers.push_back(text_sh);
@@ -89,12 +93,13 @@ void initialize_symbol_table(ELF32& elf){
 	std::memset(&symtab_sh, 0, sizeof(Elf32_Shdr));
 	symtab_sh.sh_size = 12; 	//TODO: placeholder
 	symtab_sh.sh_type = SHT_SYMTAB;
-	
 	elf.section_headers.push_back(symtab_sh);
 	elf.elf_header.e_shnum += 1; //make sure its posivite
 
 	Elf32_Sym undefined;
 	std::memset(&undefined, 0, sizeof(Elf32_Sym));
+
+	//TODO: add the actual symbol table section to the sections
 }
 
 void initialize_string_table(ELF32& elf){
@@ -105,7 +110,15 @@ void initialize_string_table(ELF32& elf){
 
 	elf.section_headers.push_back(strtab_sh);
 	elf.elf_header.e_shnum += 1;
-	//anything else?
+	//NOTE: string table gets added seperately
+}
+
+bool store_string(ELF32& elf, std::string the_string){
+	//strtab contains null-terminated string
+
+    size_t offset = elf.strtab.add_string(the_string.c_str());
+	//symtab holds the metadata and index about the string
+	return true;
 }
 
 void write_empty_elf(ELF32& elf, std::string filename) {
@@ -117,35 +130,41 @@ void write_empty_elf(ELF32& elf, std::string filename) {
     }
 
     // Write ELF header
+	std::streampos pos = 0;
     elf_file.write(
 		reinterpret_cast<const char*>(&(elf.elf_header)), sizeof(Elf32_Ehdr)
 	);
+	pos = sizeof(Elf32_Ehdr);
+	std::cout << "position after ELF header: " << pos << std::endl;
+
 	// Program headers (since they are optional, we are skipping them)
 
 	// Then Sections
+	std::cout << "# of sections: " << elf.sections.size() << std::endl;
 	for (std::vector<Section>::iterator it=elf.sections.begin(); it != elf.sections.end(); ++it){
 		elf_file.write(
 			reinterpret_cast<const char*>(&(*it).data), sizeof(&(*it).data)
 		);
+		pos += sizeof(&(*it).data);
+		std::cout << "position after section " << pos << std::endl;
 	}
 
 	// Then Section Headers
+	std::cout << "# of section headers: " << elf.section_headers.size() << std::endl;
 	for (std::vector<Elf32_Shdr>::iterator it=elf.section_headers.begin(); it != elf.section_headers.end(); ++it){
 		elf_file.write(
 			reinterpret_cast<const char*>(&(*it)), sizeof(&(*it))
 		);
+		pos += sizeof(&(*it));
+		std::cout << "position after section headers: " << pos << std::endl;
 	}
 
-	// TODO: Update all the offsets here
-	/*
-	size_t sh_offset = sizeof(Elf32_Ehdr);
-	for (std::vector<Section>::iterator it=elf.sections.begin(); it != elf.sections.end(); ++it){
-		sh_offset += it->data.size();
-		std::cout << "it->data.size(): " << it->data.size() << std::endl;
-	}
-	elf.elf_header.e_shoff = (sh_offset / sizeof(const char));
-	std::cout << "e_shoff: " << elf.elf_header.e_shoff << std::endl;
-	*/
+	//add strtab
+	elf_file.write(
+		reinterpret_cast<const char*>(elf.strtab.get_all()), elf.strtab.get_size()
+	);
+	pos += elf.strtab.get_size();
+	std::cout << "position after strtab " << pos << std::endl;
 
     elf_file.close();
 

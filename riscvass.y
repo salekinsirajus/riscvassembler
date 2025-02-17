@@ -18,6 +18,7 @@
     void yyerror(const char *s);
     //go from left to right
     inst32_t instr;
+    size_t  offset;
     Section currentSection;
 %}
 
@@ -30,10 +31,10 @@
 
 //Terminal symbols
 %token <token> ADD ADDI AND SUB SUBI LI BEQ BGE BGEU
-%token <token> BLT BLTU BNE LB LBU LH LHU LW OR ORI 
-%token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA 
+%token <token> BLT BLTU BNE LB LBU LH LHU LW OR ORI
+%token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA
 %token <token> SRAI SRL SRLI SW XOR XORI
- 
+
 %token <token> ECALL
 
 %token <token> REG
@@ -48,7 +49,7 @@
 %token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
 %token <token> D_ASCII
 %token <token> LABEL
-%token <token> ID 
+%token <token> ID
 %token <token> ASSIGNMENT
 
 //non-terminals
@@ -85,10 +86,10 @@ statement:
     {
         cout << ">> evaluating statement: directive" << endl;
     }
-	| directive 
-	{
-		cout << ">> evaluating directive" << std::endl;		
-	}
+    | directive
+    {
+        cout << ">> evaluating directive" << std::endl;
+    }
     ;
 
 directive:
@@ -107,32 +108,36 @@ directive:
     | D_DATA
     {
         std::cout << ".data (emit and make current) " << std::endl;
-		initialize_data_section(elfContent);
+        initialize_data_section(elfContent);
     }
     | D_ASCII STRING
     {
         printf("Store this string: %s\n", $2);
-		Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
-		elfContent.symtab.push_back(currentString);
+        Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
+        elfContent.symtab.push_back(currentString);
+        store_string(elfContent, $2); //TODO: check whether it worked or failed
     }
     | ASSIGNMENT D_ASCII STRING
     {
-		//same as above
+        //same as above
         printf("assign this string to the var %s\n", $3);
+        Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
+        elfContent.symtab.push_back(currentString);
+        store_string(elfContent, $3); //TODO: check whether it worked or failed
     }
     ;
 
 instructions:
-	instruction
-	| instructions instruction
-	;
+    instruction
+    | instructions instruction
+    ;
 
 instruction:
     opcode register COMMA register COMMA register
     {
         //R-format
-		//ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
-		std::cout << "R-format instruction " << std::endl;
+        //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
+        std::cout << "R-format instruction " << std::endl;
         instr.rs1 = $4;
         instr.rs2 = $6;
 
@@ -142,51 +147,51 @@ instruction:
     | opcode register COMMA register COMMA imm
     {
         //cout << ">>>> op r, r, imm" << endl;
-		//ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-		std::cout << "I-format instruction" << std::endl;
-		instr.rs1 = $4;
-		instr.rs2 = $6; 	//this is most likely different from r-type
-		elfContent.text->data.push_back(instr);
+        //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
+        std::cout << "I-format instruction" << std::endl;
+        instr.rs1 = $4;
+        instr.rs2 = $6;     //this is most likely different from r-type
+        elfContent.text->data.push_back(instr);
     }
-	| opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
-	{
-		std::cout << "S-format instruction " << std::endl;
-	}
-	| ECALL
-	{
+    | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
+    {
+        std::cout << "S-format instruction " << std::endl;
+    }
+    | ECALL
+    {
         std::cout << "ecall (syscall) invocation" << std::endl;
-	}
+    }
     ;
 
 opcode:
-    ADD 
+    ADD
     {
         instr.opcode = 0b0110011;
     }
     | SUB
-	{
-		instr.opcode = 0b0110100;
-	}
-	| ADDI 
-	{
-		instr.opcode = 0b1101111;
-	}
-	| ECALL
-	{
-		instr.opcode = 0b1111111;
-	}
+    {
+        instr.opcode = 0b0110100;
+    }
+    | ADDI
+    {
+        instr.opcode = 0b1101111;
+    }
+    | ECALL
+    {
+        instr.opcode = 0b1111111;
+    }
     ;
 
 register:
     REG
-	{
-		$$ = $1;
-	}
+    {
+        $$ = $1;
+    }
     ;
 imm:
     IMM {
         //cout << ">>>>>>>> IMM " << $1 << endl;
-		$$ = $1;
+        $$ = $1;
     }
 
 %%
@@ -207,7 +212,7 @@ int main(int argc, char** argv){
         cout << "Error: Cannot open file " << argv[1] << endl;
         return -1; //really -1?
     }
-	initialize_elf(elfContent);
+    initialize_elf(elfContent);
 
     // Set lex to read from the file instead of STDIN
     yyin = src;

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <cstring>
 #include <vector>
 
 /* These constants are for the segment types stored in the image headers */
@@ -228,10 +229,42 @@ typedef struct {
 	Elf64_Addr	st_value;
 	Elf64_Xword	st_size;
 } Elf64_Sym;
+//=======================================================//
+class StrTab {
+public:
+    StrTab() {
+        // Reserve space for initial null byte
+        content.push_back('\0');
+    }
+
+    size_t add_string(const char* str) {
+        size_t offset = content.size();
+        size_t len = std::strlen(str);
+        // +1 for null terminator
+        content.insert(content.end(), str, str + len + 1);
+        return offset;
+    }
+
+    const char* get_string(size_t offset) const {
+        return &content[offset];
+    }
+
+    const char* get_all() const {
+        return content.data();
+    }
+
+    size_t get_size() const {
+        return content.size();
+    }
+
+private:
+    std::vector<char> content;
+};
+
 
 typedef struct Section {
     std::vector<uint32_t> data;
-    uint8_t label;
+    uint32_t offset;
 } Section;
 
 //what we need for the assembler and what we dont need
@@ -243,6 +276,7 @@ typedef struct ELF32 {
     std::vector<Elf32_Shdr> section_headers; /* Section Headers (req)  */
     std::vector<Section>    sections;        /* Sections               */
     std::vector<Elf32_Sym>  symtab;          /* symbol table           */
+    StrTab                  strtab;          /* string table           */
 
     Section*                data;            /* ptr to data            */
     Section*                bss;             /* ptr to bss             */
@@ -256,5 +290,6 @@ void initialize_symbol_table(ELF32& elf);
 void initialize_string_table(ELF32& elf);
 void initialize_text_section(ELF32& elf);
 void initialize_data_section(ELF32& elf);
+bool store_string(ELF32& elf, std::string the_string);
 
 #endif
