@@ -257,6 +257,8 @@ public:
         return content.size();
     }
 
+    Elf32_Shdr* header;
+
 private:
     std::vector<char> content;
 };
@@ -264,7 +266,8 @@ private:
 
 typedef struct Section {
     std::vector<uint32_t> data;
-    uint32_t offset;
+    uint32_t            offset;
+	Elf32_Shdr         *header;
 } Section;
 
 //what we need for the assembler and what we dont need
