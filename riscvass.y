@@ -17,7 +17,8 @@
 
     void yyerror(const char *s);
     //go from left to right
-    inst32_t instr;
+    rtype32_t rtype_instr;
+    itype32_t itype_instr;
     size_t  offset;
     Section currentSection;
 %}
@@ -64,12 +65,7 @@ program:
     statements
     {
         std::cout << "reading the section" << std::endl;
-        for (std::vector<uint32_t>::iterator it=currentSection.data.begin();
-             it != currentSection.data.end();
-             ++it){
-            std::cout << std::hex << *it << std::endl;
-        }
-        write_empty_elf(elfContent, "out.data");
+        write_elf(elfContent, "out.data");
     }
     ;
 
@@ -138,20 +134,22 @@ instruction:
         //R-format
         //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
         std::cout << "R-format instruction " << std::endl;
-        instr.rs1 = $4;
-        instr.rs2 = $6;
-
-        elfContent.text->data.push_back(instr);
-        std::memset(&instr, 0, sizeof(instr));
+        rtype_instr.rs1 = $4;
+        rtype_instr.rs2 = $6;
+        elfContent.text->data.push_back(rtype_instr);
+        std::cout << "instr: " << rtype_instr << std::endl;
+        std::memset(&rtype_instr, 0, sizeof(rtype_instr));
     }
     | opcode register COMMA register COMMA imm
     {
         //cout << ">>>> op r, r, imm" << endl;
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
         std::cout << "I-format instruction" << std::endl;
-        instr.rs1 = $4;
-        instr.rs2 = $6;     //this is most likely different from r-type
-        elfContent.text->data.push_back(instr);
+        itype_instr.rs1 = $4;
+        itype_instr.imm = $6;
+        elfContent.text->data.push_back(itype_instr);
+        std::cout << "instr: " << itype_instr << std::endl;
+        std::memset(&itype_instr, 0, sizeof(itype_instr));
     }
     | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
@@ -159,26 +157,32 @@ instruction:
     }
     | ECALL
     {
+        //is this goign to affect stuff?
         std::cout << "ecall (syscall) invocation" << std::endl;
+        std::cout << "instr: " << rtype_instr << std::endl;
+        elfContent.text->data.push_back(rtype_instr);
+        std::memset(&rtype_instr, 0, sizeof(rtype_instr));
     }
     ;
 
 opcode:
     ADD
     {
-        instr.opcode = 0b0110011;
+        rtype_instr.opcode = 0b0110011;
+        rtype_instr.funct7 = 0b0000000;
     }
     | SUB
     {
-        instr.opcode = 0b0110100;
+        rtype_instr.opcode = 0b0110011;
+        rtype_instr.funct7 = 0b0100000;
     }
     | ADDI
     {
-        instr.opcode = 0b1101111;
+        itype_instr.opcode = 0b0010011;
     }
     | ECALL
     {
-        instr.opcode = 0b1111111;
+        rtype_instr.opcode = 0b1110011;
     }
     ;
 
@@ -190,7 +194,6 @@ register:
     ;
 imm:
     IMM {
-        //cout << ">>>>>>>> IMM " << $1 << endl;
         $$ = $1;
     }
 

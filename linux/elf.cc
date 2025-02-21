@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <sstream>
 #include <fstream>
 #include <cstring>
 #include <string>
@@ -32,27 +34,12 @@ void initialize_elf(ELF32& elf) {
     //Usually 64 bytes in 64-bit ELF and 52 bytes for 32 bits)
     elf_header.e_ehsize = sizeof(Elf32_Ehdr); //52
     elf_header.e_phentsize = sizeof(Elf32_Phdr);
-    elf_header.e_phnum = 1;           // Number of program headers
+    elf_header.e_phnum = 0;           // Number of program headers
     elf_header.e_shentsize = sizeof(Elf32_Shdr); 
                                       // Section header entry size 
     elf_header.e_shnum = 1;           // Number of section headers
     elf_header.e_shstrndx = 0;        // Section header string index??
     /*================ ELF Header END ==================*/
-
-    /*============== Program Header START ==============*/
-    Elf32_Phdr prog_header;
-    memset(&prog_header, 0, sizeof(prog_header));
-    prog_header.p_type = PT_LOAD;    // Loadable segment
-    prog_header.p_flags = PF_X | PF_R;  // Execute + Read
-    prog_header.p_offset = sizeof(Elf32_Ehdr) + sizeof(Elf32_Phdr);  // Offset in file
-    prog_header.p_vaddr = 0x1000;   // Virtual address in memory (just a dummy)
-    prog_header.p_paddr = 0;        // Physical address (not used)
-    prog_header.p_filesz = 0;       // Size of segment in file (empty)
-    prog_header.p_memsz = 0;        // Size of segment in memory (empty)
-    prog_header.p_align = 0x1000;   // Alignment (0x1000 bytes)
-    /*================ Program Header END ==============*/
-
-    elf.program_headers.push_back(prog_header);
 
     elf.data   = nullptr;
     elf.text   = nullptr;
@@ -65,40 +52,39 @@ void initialize_elf(ELF32& elf) {
 }
 
 void initialize_data_section(ELF32& elf){
-    if (!elf.data){
-        Section data;
+	Section* data = new Section();
 
-        Elf32_Shdr data_sh;
-        data_sh.sh_type = SHT_PROGBITS;
-        elf.data = &data;
-        data.header = &data_sh;
+	Elf32_Shdr* data_sh = new Elf32_Shdr();
+	data_sh->sh_type = SHT_PROGBITS;
+	elf.data = data;
+	data->header = data_sh;
 
-        elf.sections.push_back(data);
-        elf.section_headers.push_back(data_sh);
-    }
+	elf.sections.push_back(data);      //is this working?
+	std::cout << "data_sh " << data_sh->sh_name << std::endl;
+	elf.section_headers.push_back(*data_sh);
 }
 
 void initialize_text_section(ELF32& elf){
-    if (!elf.text){
-        Section text;
+	Section* text = new Section();
 
-        Elf32_Shdr text_sh;
-        text_sh.sh_type = SHT_PROGBITS;
-        elf.text = &text;
-        text.header = &text_sh;
+	Elf32_Shdr* text_sh = new Elf32_Shdr();
+	text_sh->sh_type = SHT_PROGBITS;
+	elf.text = text;
+	text->header = text_sh;
 
-        elf.sections.push_back(text);
-        elf.section_headers.push_back(text_sh);
-    }
+	elf.sections.push_back(text);
+	std::cout << "text_sh " << text_sh->sh_name << std::endl;
+	elf.section_headers.push_back(*text_sh);
 }
 
 void initialize_symbol_table(ELF32& elf){
-    Elf32_Shdr symtab_sh;
-    std::memset(&symtab_sh, 0, sizeof(Elf32_Shdr));
+    Elf32_Shdr* symtab_sh = new Elf32_Shdr();
+    std::memset(symtab_sh, 0, sizeof(Elf32_Shdr));
 
-    symtab_sh.sh_size = 1;     //TODO: placeholder
-    symtab_sh.sh_type = SHT_SYMTAB;
-    elf.section_headers.push_back(symtab_sh);
+    symtab_sh->sh_size = 0;     //TODO: update w/ actual count
+    symtab_sh->sh_type = SHT_SYMTAB;
+	std::cout << "symtab_sh " << symtab_sh->sh_name << std::endl;
+    elf.section_headers.push_back(*symtab_sh);
 
     Elf32_Sym undefined;
     std::memset(&undefined, 0, sizeof(Elf32_Sym));
@@ -108,15 +94,17 @@ void initialize_symbol_table(ELF32& elf){
 }
 
 void initialize_string_table(ELF32& elf){
-    Elf32_Shdr strtab_sh;
-    std::memset(&strtab_sh, 0, sizeof(Elf32_Shdr));
-    strtab_sh.sh_size = 0;        //TODO: placeholder
-    strtab_sh.sh_type = SHT_STRTAB;
+    Elf32_Shdr* strtab_sh = new Elf32_Shdr();
+    std::memset(strtab_sh, 0, sizeof(Elf32_Shdr));
+    strtab_sh->sh_size = 0;
+    strtab_sh->sh_type = SHT_STRTAB;
 
-    elf.strtab.header = &strtab_sh;
+    //linking the section header to the section so it can be
+    //located easily
+    elf.strtab.header = strtab_sh;
 
-    elf.section_headers.push_back(strtab_sh);
-    elf.elf_header.e_shnum += 1;
+	std::cout << "strtab_sh " << strtab_sh->sh_name << std::endl;
+    elf.section_headers.push_back(*strtab_sh);
     //NOTE: string table gets added seperately
 }
 
@@ -130,64 +118,61 @@ bool store_string(ELF32& elf, std::string the_string){
     return true;
 }
 
-void write_empty_elf(ELF32& elf, std::string filename) {
+void write_elf(ELF32& elf, std::string filename) {
+    // Create an ostringstream to accumulate the byte stream
+    std::ostringstream elf_stream(std::ios::binary);
+    std::streampos pos = sizeof(Elf32_Ehdr);
+    std::cout << "position after ELF header: " << pos << std::endl;
+
+    // Add sections
+    std::cout << "# of sections: " << elf.sections.size() << std::endl;
+    for (std::vector<Section *>::iterator it = elf.sections.begin(); it != elf.sections.end(); ++it) {
+		size_t data_size = ((*it)->data.size() * sizeof(uint32_t));
+        elf_stream.write(reinterpret_cast<const char*>((*it)->data.data()), data_size);
+        pos += data_size;
+        std::cout << "position after section : " << pos << std::endl;
+    }
+
+	std::cout << "beginning of the section header here: " << pos << std::endl;
+    elf.elf_header.e_shoff = static_cast<uint32_t>(pos);		//OFF BY ONE?
+    elf.elf_header.e_shnum = elf.section_headers.size();
+    std::cout << "# of section headers: " << elf.section_headers.size() << std::endl;
+
+	// Add an empty header first?
+	Elf32_Shdr first_entry;
+	std::memset(&first_entry, 0, sizeof(Elf32_Shdr));
+	elf_stream.write(reinterpret_cast<const char*>(&first_entry), sizeof(Elf32_Shdr));
+	pos += sizeof(Elf32_Shdr);
+    std::cout << "size of a section header: " << sizeof(Elf32_Shdr) << std::endl;
+    for (auto& section_header : elf.section_headers) {
+		std::cout << "sh_name " << section_header.sh_name << std::endl;
+        elf_stream.write(reinterpret_cast<const char*>(&section_header), sizeof(Elf32_Shdr));
+        pos += sizeof(Elf32_Shdr);
+        std::cout << "position after section header: " << pos << std::endl;
+    }
+
+    // Add strtab
+    elf_stream.write(reinterpret_cast<const char*>(elf.strtab.get_all()), elf.strtab.get_size());
+    pos += elf.strtab.get_size();
+    std::cout << "position after strtab " << pos << std::endl;
+
+    // After updating the ELF header, write the byte stream to the file
     std::ofstream elf_file(filename, std::ios::out | std::ios::binary);
-    
     if (!elf_file) {
         std::cerr << "Unable to open file for writing.\n";
         return;
     }
 
-    // Write ELF header
-    std::streampos pos = 0;
-    elf_file.write(
-        reinterpret_cast<const char*>(&(elf.elf_header)), sizeof(Elf32_Ehdr)
-    );
-    pos = sizeof(Elf32_Ehdr);
-    std::cout << "position after ELF header: " << pos << std::endl;
+    // Write the ELF header again at the beginning of the file
+    elf_file.write(reinterpret_cast<const char*>(&(elf.elf_header)), sizeof(Elf32_Ehdr));
 
-    // Program headers (since they are optional, we are skipping them)
-
-    // Then Sections
-    std::cout << "# of sections: " << elf.sections.size() << std::endl;
-    for (std::vector<Section>::iterator it=elf.sections.begin(); it != elf.sections.end(); ++it){
-        //TODO: update this awkward iterator references
-        Section *s = &(*it);
-        s->data.push_back(0xdeadbeef);
-        s->header->sh_offset = pos;        //updating the offset in the relevant section header
-        elf_file.write(
-           reinterpret_cast<const char*>(s->data.data()), s->data.size() * sizeof(uint32_t)
-        );
-        
-        pos += (s->data.size() * sizeof(uint32_t));
-        std::cout << "position after section " << pos << std::endl;
-        if (it->header != nullptr){
-            s->header->sh_offset = static_cast<Elf32_Off>(pos);
-        }
-    }
-
-    // Then Section Headers
-    std::cout << "# of section headers: " << elf.section_headers.size() << std::endl;
-    for (std::vector<Elf32_Shdr>::iterator it=elf.section_headers.begin(); it != elf.section_headers.end(); ++it){
-        elf_file.write(
-            reinterpret_cast<const char*>(&(*it)), sizeof(Elf32_Shdr)
-        );
-        std::cout << "size of a section header: " << sizeof(Elf32_Shdr) << std::endl;
-        pos += sizeof(Elf32_Shdr);
-        std::cout << "position after section headers: " << pos << std::endl;
-    }
-
-    //add strtab
-    elf_file.write(
-        reinterpret_cast<const char*>(elf.strtab.get_all()), elf.strtab.get_size()
-    );
-    pos += elf.strtab.get_size();
-    std::cout << "position after strtab " << pos << std::endl;
+    // Write the byte stream to the file
+    elf_file.write(elf_stream.str().data(), elf_stream.str().size());
 
     elf_file.close();
 
     if (!elf_file.good()) {
-        std::cerr << "Error occurred at writing time!\n";
+        std::cerr << "Error occurred during writing!\n";
     } else {
         std::cout << "ELF file written successfully.\n";
     }

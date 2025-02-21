@@ -11,3 +11,4 @@ _start: addi  a0, x0, 1      # 1 = StdOut
 
 .data 
 helloworld:      .ascii "Hello World!\n"
+atext:	.ascii "this is a random text"

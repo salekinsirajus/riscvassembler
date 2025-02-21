@@ -2,7 +2,7 @@
 
 
 // Function to print the instruction structure in hex
-void print_instruction_hex(const inst32_t& instr) {
+void print_instruction_hex(const rtype32_t& instr) {
 	uint32_t encoded = 0;
 	encoded |= (instr.opcode & 0x7F);
 	encoded |= (instr.rd & 0x1F) << 7;
@@ -14,7 +14,7 @@ void print_instruction_hex(const inst32_t& instr) {
 	printf("Inst: 0x%08X\n", encoded);
 }
 
-void print_instruction(const inst32_t& instr) {
+void print_instruction(const rtype32_t& instr) {
 	printf("Instruction Encoded: opcode = %u, rd = %u, funct3 = %u, rs1 = %u, rs2 = %u, funct7 = %u\n",
 		   instr.opcode, instr.rd, instr.funct3, instr.rs1, instr.rs2, instr.funct7);
 	print_instruction_hex(instr);
