@@ -275,16 +275,16 @@ typedef struct Section {
 // A relocateble object must have a section header table
 typedef struct ELF32 {
     Elf32_Ehdr elf_header;                   /* ELF File Header        */
-    std::vector<Elf32_Phdr> program_headers; /* Program Headers (opt)  */
-    std::vector<Elf32_Shdr> section_headers; /* Section Headers (req)  */
-    std::vector<Section *>  sections;        /* Section ptrs           */
-    std::vector<Elf32_Sym>  symtab;          /* symbol table           */
-    StrTab                  strtab;          /* string table           */
+    std::vector<Elf32_Phdr>   program_headers; /* Program Headers (opt)  */
+    std::vector<Elf32_Shdr *> section_headers; /* Section Headers (req)  */
+    std::vector<Section *>    sections;        /* Section ptrs           */
+    std::vector<Elf32_Sym>    symtab;          /* symbol table           */
+    StrTab                    strtab;          /* string table           */
 
-    Section*                data;            /* ptr to data            */
-    Section*                bss;             /* ptr to bss             */
-    Section*                rodata;          /* ptr to rodata          */
-    Section*                text;            /* ptr to code            */
+    Section*                  data;            /* ptr to data            */
+    Section*                  bss;             /* ptr to bss             */
+    Section*                  rodata;          /* ptr to rodata          */
+    Section*                  text;            /* ptr to code            */
 } ELF32;
 
 void write_elf(ELF32& elf, std::string filename);

@@ -23,9 +23,9 @@ the content.
 aka the work in progress
 - [x] initialize symbol table and string table
 - [x] add entry to the strtab
+- [x] proper offset calculation for section headers
 - [ ] add entry to the symtab
 - [ ] address/ref resolution (single or multi-pass?)
 - [ ] implement all instruction formats
-- [~] proper offset calculation
 - [ ] relocation info
 - [ ] directive support
