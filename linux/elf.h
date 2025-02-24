@@ -213,21 +213,21 @@ typedef struct Elf32_Shdr
 
 // symbol table
 typedef struct {
-	Elf32_Word	st_name;
-	Elf32_Addr	st_value;
-	Elf32_Word	st_size;
-	unsigned char	st_info;
-	unsigned char	st_other;
-	Elf32_Half	st_shndx;
+    Elf32_Word     st_name;
+    Elf32_Addr     st_value;
+    Elf32_Word     st_size;
+    unsigned char  st_info;
+    unsigned char  st_other;
+    Elf32_Half     st_shndx;
 } Elf32_Sym;
 
 typedef struct {
-	Elf64_Word	st_name;
-	unsigned char	st_info;
-	unsigned char	st_other;
-	Elf64_Half	st_shndx;
-	Elf64_Addr	st_value;
-	Elf64_Xword	st_size;
+    Elf64_Word     st_name;
+    unsigned char  st_info;
+    unsigned char  st_other;
+    Elf64_Half     st_shndx;
+    Elf64_Addr     st_value;
+    Elf64_Xword    st_size;
 } Elf64_Sym;
 //=======================================================//
 class StrTab {
