@@ -75,6 +75,7 @@ void initialize_text_section(ELF32& elf){
     elf.sections.push_back(text);
     std::cout << "text_sh " << text_sh->sh_name << std::endl;
     elf.section_headers.push_back(text_sh);
+
 }
 
 void initialize_symbol_table(ELF32& elf){
@@ -106,16 +107,32 @@ void initialize_string_table(ELF32& elf){
     std::cout << "strtab_sh " << strtab_sh->sh_name << std::endl;
     elf.section_headers.push_back(strtab_sh);
     //NOTE: string table gets added seperately
+	//TODO: add the initial null terminator
 }
 
-bool store_string(ELF32& elf, std::string the_string){
+size_t store_string(ELF32& elf, std::string the_string){
     //strtab contains null-terminated string
 
     size_t offset = elf.strtab.add_string(the_string.c_str());
     //symtab holds the metadata and index about the string
     elf.strtab.header->sh_size += 1;
 
-    return true;
+    return offset;
+}
+
+size_t store_label(ELF32& elf, std::string the_label, bool is_global){
+	size_t offset = store_string(elf, the_label);
+
+	Elf32_Sym sym;
+	sym.st_name = offset;		// index into the string table
+	if (is_global){
+		sym.st_info = ELF32_ST_BIND(STB_GLOBAL);
+	} else {
+		sym.st_info = ELF32_ST_BIND(STB_LOCAL);
+	}
+
+	elf.symtab.push_back(sym);	
+	return offset;
 }
 
 void write_elf(ELF32& elf, std::string filename) {

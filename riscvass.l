@@ -65,7 +65,7 @@
 
 "ecall"          { return ECALL; }
 
-_[a-zA-Z0-9]*   { return LABEL; }
+_[a-zA-Z0-9]*    { yylval.sval = strdup(yytext); return LABEL; }
 
 "zero"           { return yylval.ival = 0; return REG; }
 

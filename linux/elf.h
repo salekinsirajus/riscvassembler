@@ -211,6 +211,16 @@ typedef struct Elf32_Shdr
   Elf32_Word    sh_entsize;      /* Entry size if section holds table */
 } Elf32_Shdr;
 
+#define ELF32_ST_BIND(i) ((i)>>4)
+#define ELF32_ST_TYPE(i) ((i)&0xf)
+#define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
+
+#define STB_LOCAL   0
+#define STB_GLOBAL  1
+#define STB_WEAK    2
+#define STB_HIPROC 13
+#define STB_LOPROC 15
+
 // symbol table
 typedef struct {
     Elf32_Word     st_name;
@@ -230,6 +240,8 @@ typedef struct {
     Elf64_Xword    st_size;
 } Elf64_Sym;
 //=======================================================//
+
+
 class StrTab {
 public:
     StrTab() {
@@ -293,6 +305,7 @@ void initialize_symbol_table(ELF32& elf);
 void initialize_string_table(ELF32& elf);
 void initialize_text_section(ELF32& elf);
 void initialize_data_section(ELF32& elf);
-bool store_string(ELF32& elf, std::string the_string);
+size_t store_string(ELF32& elf, std::string the_string);
+size_t store_label(ELF32& elf, std::string the_label, bool is_global);
 
 #endif

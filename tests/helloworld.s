@@ -1,7 +1,7 @@
 .globl _start      # Provide program starting address to linker
 
 _start: addi  a0, x0, 1      # 1 = StdOut
-#TODO later        la    a1, helloworld # load address of helloworld
+#        la    a1, helloworld # load address of helloworld
         addi  a2, x0, 13     # length of our string
         addi  a7, x0, 64     # linux write system call
         ecall                # Call linux to output the string
@@ -11,4 +11,3 @@ _start: addi  a0, x0, 1      # 1 = StdOut
 
 .data 
 helloworld:      .ascii "Hello World!\n"
-atext:	.ascii "this is a random text"

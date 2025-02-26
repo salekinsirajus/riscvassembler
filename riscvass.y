@@ -96,6 +96,8 @@ directive:
     | D_GLOBAL LABEL
     {
         std::cout << ".globl LABEL" << std::endl;
+		std::cout << "label value: " << yylval.sval << std::endl; 
+		store_label(elfContent, yylval.sval, true);
     }
     | D_TEXT
     {
