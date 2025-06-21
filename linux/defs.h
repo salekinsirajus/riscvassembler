@@ -115,6 +115,20 @@ enum : unsigned {
 #define SHF_ORDERED          (1 << 30)    /* Special ordering requirement (Solaris).  */
 #define SHF_EXCLUDE         (1U << 31)    /* Section is excluded unless referenced or allocated (Solaris).*/
 
+// ELF Special Section Indices
+#define SHN_UNDEF     0
+#define SHN_LORESERVE 0xff00
+#define SHN_LOPROC    0xff00
+#define SHN_BEFORE    0xff00
+#define SHN_AFTER     0xff01
+#define SHN_HIPROC    0xff1f
+#define SHN_LOOS      0xff20
+#define SHN_HIOS      0xff3f
+#define SHN_ABS       0xfff1
+#define SHN_COMMON    0xfff2
+#define SHN_XINDEX    0xffff
+#define SHN_HIRESERVE 0xffff
+
 //for 32-bit 
 typedef uint16_t Elf32_Half;   /* unsigned half int */
 typedef uint32_t Elf32_Off;    /* unsigned offset */
