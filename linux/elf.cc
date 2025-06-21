@@ -15,7 +15,7 @@
 
 void write_elf(ELF32& elf, std::string filename) {
     std::ostringstream elf_stream(std::ios::binary);
-	elf.serialize(elf_stream);
+    elf.serialize(elf_stream);
 
     // After updating the ELF header, write the byte stream to the file
     std::ofstream elf_file(filename, std::ios::out | std::ios::binary);
@@ -41,12 +41,12 @@ void write_elf(ELF32& elf, std::string filename) {
 
 ELF32::ELF32(void){
     printf("ctor ELF32\n");
-	init_elf_header();
-	init_section_headers();
+    init_elf_header();
+    init_section_headers();
     init_strtables();
     init_symtab();
     init_text_section();
-	init_data_section();
+    init_data_section();
 }
 
 ELF32::~ELF32(){
@@ -66,7 +66,7 @@ void ELF32::init_symtab(){
     Elf32_Sym undefined;
     std::memset(&undefined, 0, sizeof(Elf32_Sym));
 
-   	symtab.push_back(undefined); 
+       symtab.push_back(undefined);
 }
 void ELF32::init_text_section(){
     Section* text = new Section();
@@ -85,7 +85,7 @@ void ELF32::init_section_headers(){
     Elf32_Shdr *first_entry = new Elf32_Shdr;
     std::memset(first_entry, 0, sizeof(Elf32_Shdr));
 
-	section_headers.push_back(first_entry);
+    section_headers.push_back(first_entry);
 }
 
 void ELF32::init_data_section(){
@@ -105,8 +105,8 @@ void ELF32::init_strtables(){
     Elf32_Shdr* sh_strtab = new Elf32_Shdr();
     Elf32_Shdr* sh_shstrtab = new Elf32_Shdr();
     strtab.header = sh_strtab;
-	shstrtab.header = sh_shstrtab;
-	
+    shstrtab.header = sh_shstrtab;
+
     std::memset(sh_strtab, 0, sizeof(Elf32_Shdr));
     std::memset(sh_shstrtab, 0, sizeof(Elf32_Shdr));
 
@@ -119,16 +119,16 @@ void ELF32::init_strtables(){
     section_headers.push_back(sh_strtab);
     section_headers.push_back(sh_shstrtab);
 
-	//DO we need the indices from both of the following ops?
-	store_section_name(".shstrtab");
-	store_section_name(".strtab");
+    //DO we need the indices from both of the following ops?
+    store_section_name(".shstrtab");
+    store_section_name(".strtab");
 }
 
 size_t ELF32::store_section_name(std::string name){
-	size_t offset = shstrtab.add_string(name.c_str());
-	shstrtab.header->sh_size = shstrtab.get_size();
+    size_t offset = shstrtab.add_string(name.c_str());
+    shstrtab.header->sh_size = shstrtab.get_size();
 
-	return offset;
+    return offset;
 }
 
 size_t ELF32::store_regular_string(std::string str){
@@ -149,7 +149,7 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
         sym.st_info = ELF32_ST_BIND(STB_LOCAL);
     }
 
-    symtab.push_back(sym);    
+    symtab.push_back(sym);
     symtab_sh->sh_size += 1; //updating count, TODO: is this true?
     return offset;
 }
@@ -175,7 +175,7 @@ void ELF32::update_elf_header(){
     // - section header table offset
     // - e_phnum number of program headers
     // - e_shnum number pf section headers
-    // - s_shstrndx section header string index    
+    // - s_shstrndx section header string index
     elf_header.e_shoff = 1000; // FIXME section header table's file offset in bytes
     elf_header.e_shnum = 2;    // update this every time a new section is added
 }
@@ -200,13 +200,13 @@ void ELF32::init_elf_header(){
     elf_header.e_flags =         0;
 
     elf_header.e_ehsize    = sizeof(Elf32_Ehdr); //52 (64 bytes in 64-bit ELF and 52 bytes for 32 bits)
-    elf_header.e_phentsize =                  0; // size of 1 entry in prog header table. 
+    elf_header.e_phentsize =                  0; // size of 1 entry in prog header table.
     elf_header.e_shentsize = sizeof(Elf32_Shdr); // Section header table entry size in bytes.
 
     elf_header.e_phnum = 0;          // TODO: Number of program headers
     elf_header.e_shnum = 0;          // TODO: number of entries in the section header table
     elf_header.e_shstrndx = 0;       // TODO: Section header string index??
-    //section header table index of the entry associated with the section name string table. 
+    //section header table index of the entry associated with the section name string table.
 }
 
 void ELF32::serialize(std::ostream& os){
@@ -234,7 +234,7 @@ void ELF32::serialize(std::ostream& os){
 
     // Add shstrtab FIXME: move these calculation to the serialize API
     shstrtab.header->sh_offset = os.tellp(); //pos;    //setting the offset of shstrtab
-	shstrtab.serialize(os);
+    shstrtab.serialize(os);
     shstrtab.header->sh_size   = shstrtab.get_size();
 
     std::cout << "shstrtab offset: " << shstrtab.header->sh_offset << std::endl;
@@ -246,12 +246,12 @@ void ELF32::serialize(std::ostream& os){
     elf_header.e_shoff = static_cast<uint32_t>(pos);        //OFF BY ONE?
     elf_header.e_shnum = section_headers.size();
     std::cout << "# of section headers: " << section_headers.size() << std::endl;
-	//FIXME: we haven't added the symbol table
+    //FIXME: we haven't added the symbol table
 
     // Add an empty header first?
-	// TODO: update the ELF header's e_shoff field
+    // TODO: update the ELF header's e_shoff field
     std::cout << "size of a section header: " << sizeof(Elf32_Shdr) << std::endl;
-    for (std::vector<Elf32_Shdr *>::iterator it = section_headers.begin(); 
+    for (std::vector<Elf32_Shdr *>::iterator it = section_headers.begin();
          it != section_headers.end(); ++it
         ){
         std::cout << "sh_name " << (*it)->sh_name << std::endl;
