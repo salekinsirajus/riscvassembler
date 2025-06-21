@@ -9,7 +9,7 @@
 
     using namespace std;
 
-    ELF32 elfContent;
+	ELF32 newElfContent;
     //flex stuff bison needs
     extern int yylex();
     extern int yyparse();
@@ -64,8 +64,8 @@
 program:
     statements
     {
-        std::cout << "reading the section" << std::endl;
-        write_elf(elfContent, "out.data");
+        std::cout << "reading program" << std::endl;
+        write_elf(newElfContent, "out.data");
     }
     ;
 
@@ -97,7 +97,7 @@ directive:
     {
         std::cout << ".globl LABEL" << std::endl;
 		std::cout << "label value: " << yylval.sval << std::endl; 
-		store_label(elfContent, yylval.sval, true);
+		newElfContent.store_label(yylval.sval, true); //TODO: global or not
     }
     | D_TEXT
     {
@@ -106,22 +106,23 @@ directive:
     | D_DATA
     {
         std::cout << ".data (emit and make current) " << std::endl;
-        initialize_data_section(elfContent);
     }
     | D_ASCII STRING
     {
         printf("Store this string: %s\n", $2);
         Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
-        elfContent.symtab.push_back(currentString);
-        store_string(elfContent, $2); //TODO: check whether it worked or failed
+
+        newElfContent.add_to_symtab(currentString);
+        newElfContent.store_regular_string($2); //TODO: check whether it worked or failed
     }
     | ASSIGNMENT D_ASCII STRING
     {
         //same as above
         printf("assign this string to the var %s\n", $3);
         Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
-        elfContent.symtab.push_back(currentString);
-        store_string(elfContent, $3); //TODO: check whether it worked or failed
+
+        newElfContent.add_to_symtab(currentString);
+        newElfContent.store_regular_string($3); //TODO: check whether it worked or failed
     }
     ;
 
@@ -138,7 +139,8 @@ instruction:
         std::cout << "R-format instruction " << std::endl;
         rtype_instr.rs1 = $4;
         rtype_instr.rs2 = $6;
-        elfContent.text->data.push_back(rtype_instr);
+
+        newElfContent.add_to_text(rtype_instr); //TODO: add API
         std::cout << "instr: " << rtype_instr << std::endl;
         std::memset(&rtype_instr, 0, sizeof(rtype_instr));
     }
@@ -149,7 +151,8 @@ instruction:
         std::cout << "I-format instruction" << std::endl;
         itype_instr.rs1 = $4;
         itype_instr.imm = $6;
-        elfContent.text->data.push_back(itype_instr);
+
+        newElfContent.add_to_text(itype_instr); //TODO: add API
         std::cout << "instr: " << itype_instr << std::endl;
         std::memset(&itype_instr, 0, sizeof(itype_instr));
     }
@@ -162,7 +165,8 @@ instruction:
         //is this goign to affect stuff?
         std::cout << "ecall (syscall) invocation" << std::endl;
         std::cout << "instr: " << rtype_instr << std::endl;
-        elfContent.text->data.push_back(rtype_instr);
+
+        newElfContent.add_to_text(rtype_instr);
         std::memset(&rtype_instr, 0, sizeof(rtype_instr));
     }
     ;
@@ -217,7 +221,6 @@ int main(int argc, char** argv){
         cout << "Error: Cannot open file " << argv[1] << endl;
         return -1; //really -1?
     }
-    initialize_elf(elfContent);
 
     // Set lex to read from the file instead of STDIN
     yyin = src;
