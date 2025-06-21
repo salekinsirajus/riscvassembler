@@ -35,4 +35,4 @@ typedef struct itype32_t{
     }
 } itype32_t;
 
-#endif
+#endif //ENCODING_H
