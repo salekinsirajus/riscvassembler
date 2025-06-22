@@ -40,7 +40,6 @@ void write_elf(ELF32& elf, std::string filename) {
 }
 
 ELF32::ELF32(void){
-    printf("ctor ELF32\n");
     init_elf_header();
     init_section_headers();
     init_strtables();
