@@ -6,60 +6,100 @@
 
 #include <stdint.h>
 #include <iostream>
+#include <ostream>
 #include <sstream>
 #include <fstream>
 #include <vector>
-
+#include <stdexcept>
+#include <cstdio>
 #include <string>
 #include <cstring>
 
+#include <cctype> // for std::isprint
+
+//TODO: move the implementation to a separate file
 class StringTable {
 public:
     StringTable() {
-        // Reserve space for initial null byte
+        // Start with a null terminator
         content.push_back('\0');
     }
 
+    // Adds a null-terminated string and returns its offset
     size_t add_string(const char* str) {
-        //TODO: always add a null-terminator so you can serialize anytime
-        size_t offset = content.size();
-        size_t len = std::strlen(str); //TODO: double check if this is correct
+        if (!str) throw std::invalid_argument("Null string passed");
 
-         // +1 for null terminator
-        content.insert(content.end(), str, str + len + 1);
+        // Insert before the final null terminator
+        size_t offset = content.size() - 1;
+        size_t len = std::strlen(str);
+
+        content.insert(content.end() - 1, str, str + len);
+        content.insert(content.end() - 1, '\0');
 
         return offset;
     }
 
+    // Access string at offset
     const char* get_string(size_t offset) const {
+        if (offset >= content.size()) throw std::out_of_range("Offset out of bounds");
         return &content[offset];
     }
 
+    // Returns entire string table buffer
     const char* get_all() const {
         return content.data();
     }
 
+    // Returns total size including both nulls
     size_t get_size() const {
-        return content.size() + 1; //the final null-terminator
+        return content.size();
+    }
+
+    // Write string table to output stream and update header
+    void serialize(std::ostream &os) const {
+        if (!header) throw std::runtime_error("Header not set");
+        os.seekp(0, std::ios_base::end); //get to the end
+
+        header->sh_offset = static_cast<uint32_t>(os.tellp());
+        header->sh_size = get_size();
+
+        os.write(reinterpret_cast<const char*>(content.data()), content.size());
     }
 
     void print_content() const {
-        printf("\n=========strtab============\n");
-        for (int i=0; i < content.size(); i++){
-            printf("|(%x %c %d)", content[i], content[i], i);
+        const size_t columns = 10;
+        size_t size = content.size();
+
+        // Print column headers
+        printf("\n========= strtab (size: %zu) =========\n", size);
+        printf("Offset |");
+        for (size_t col = 0; col < columns; ++col) {
+            printf(" %zu ", col);
         }
-        printf("\n===========================\n");
+        printf("\n-------+------------------------------\n");
+
+        // Print content in rows of 10
+        for (size_t i = 0; i < size; i += columns) {
+            printf("%06zu |", i);  // Offset
+
+            for (size_t j = 0; j < columns; ++j) {
+                if (i + j < size) {
+                    char c = content[i + j];
+                    if (std::isprint(static_cast<unsigned char>(c))) {
+                        printf(" %c ", c);
+                    } else {
+                        printf(" . ");
+                    }
+                } else {
+                    printf("   "); // Blank for missing cells
+                }
+            }
+            printf("\n");
+        }
+
+        printf("=======================================\n");
     }
 
-    void serialize(std::ostream &os){
-        //An additional null terminator is needed at the end
-        content.push_back('\0');
-        os.write(
-            reinterpret_cast<const char*>(content.data()),
-            get_size()
-        );
-        //TODO: should we update the header now?
-    }
 
     Elf32_Shdr* header;
 
@@ -134,8 +174,8 @@ class ELF32{
 
         Elf32_Shdr                *symtab_sh;
 
-        StringTable strtab;                        /* string table (regular) */
-        StringTable shstrtab;                      /* section header strtab  */
+        StringTable               *strtab;         /* string table (regular) */
+        StringTable               *shstrtab;       /* section header strtab  */
         std::vector<Elf32_Sym>    symtab;          /* symbol table           */
 };
 
