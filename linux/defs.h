@@ -1,6 +1,14 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+#define ELFCLASS32    1
+#define ELFCLASS64    2
+
+#define ELFDATA2LSB   1
+#define ELFDATA2MSB   2
+
+#define ELFMAG        "\177ELF"
+#define SELFMAG       4
 
 /* These constants are for the segment types stored in the image headers */
 #define PT_NULL    0
