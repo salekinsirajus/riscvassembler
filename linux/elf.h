@@ -107,6 +107,32 @@ private:
     std::vector<char> content;
 };
 
+class Symtab {
+public:
+    Symtab(){}
+
+    void push_back(Elf32_Sym& sym){
+        data.push_back(sym);
+    }
+
+    size_t get_size() const {
+        return (data.size() * sizeof(Elf32_Sym));
+    }
+
+    void serialize(std::ostream& os){
+        if (data.size() > 0){
+            printf("size of symtab: %lu", data.size());
+            header->sh_offset = static_cast<uint32_t>(os.tellp());
+            header->sh_size = get_size();
+            os.write(reinterpret_cast<const char*>(data.data()), get_size());
+        }
+    }
+
+    Elf32_Shdr* header;
+
+private:
+     std::vector<Elf32_Sym>    data;          /* symbol table           */
+};
 
 typedef struct Section {
     std::vector<uint32_t> data;
@@ -141,6 +167,7 @@ class ELF32{
 
         void   add_to_data();
         void   add_to_symtab(Elf32_Sym& symbol);
+        void   add_to_symtab(std::string entry);
 
         void   serialize(std::ostream& os);
         void   deserialize();
@@ -172,11 +199,9 @@ class ELF32{
         Section                   *sec_rodata;
         Section                   *sec_text;
 
-        Elf32_Shdr                *symtab_sh;
-
         StringTable               *strtab;         /* string table (regular) */
         StringTable               *shstrtab;       /* section header strtab  */
-        std::vector<Elf32_Sym>    symtab;          /* symbol table           */
+        Symtab                    *symtab;         /* symbol table           */
 };
 
 void write_elf(ELF32& elf, std::string filename);

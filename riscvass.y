@@ -97,7 +97,7 @@ directive:
     {
         std::cout << ".globl LABEL" << std::endl;
 		std::cout << "label value: " << yylval.sval << std::endl; 
-		newElfContent.store_label(yylval.sval, true); //TODO: global or not
+		newElfContent.store_label(yylval.sval, true);
     }
     | D_TEXT
     {

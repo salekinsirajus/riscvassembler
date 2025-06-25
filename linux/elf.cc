@@ -55,16 +55,26 @@ void ELF32::init_symtab(){
 
     sh->sh_size = 0;
     sh->sh_type = SHT_SYMTAB;
-    //TODO: not sure if this is stored
-    sh->sh_name = store_section_name(".symtab");
-    symtab_sh = sh;
+    sh->sh_entsize = sizeof(Elf32_Sym);
+    //sh->sh_flag = SHF_ALLOC; // TODO: confirm this
 
-    Elf32_Sym undefined;
-    std::memset(&undefined, 0, sizeof(Elf32_Sym));
-    symtab.push_back(undefined);
+    sh->sh_name = store_section_name(".symtab");
+    sh->sh_link = 1; // FIXME: sh idx of whichever string table
+    sh->sh_info = 1;  // last STB_LOCAL index in the symtab + 1
+    std::cout << "Symtab sh_name: " << sh->sh_name << std::endl;
+
+    Symtab* s = new Symtab();
+    symtab = s;
+    symtab->header = sh;
+
+    Elf32_Sym first = {};
+    first.st_shndx = SHN_UNDEF;
+    symtab->push_back(first);
+
     std::cout << "SYMTAB: Section Header Idx: " << section_headers.size() << std::endl;
     section_headers.push_back(sh);
 }
+
 void ELF32::init_text_section(){
     Section* text = new Section();
 
@@ -147,16 +157,13 @@ size_t ELF32::store_regular_string(std::string str){
 size_t ELF32::store_label(std::string the_label, bool is_global){
     size_t offset = store_regular_string(the_label); //FIXME: is it a regular string?
 
-    Elf32_Sym sym;
+    Elf32_Sym sym = {};
     sym.st_name = offset;        // index into the string table
-    if (is_global){
-        sym.st_info = ELF32_ST_BIND(STB_GLOBAL);
-    } else {
-        sym.st_info = ELF32_ST_BIND(STB_LOCAL);
-    }
+    sym.st_info = ELF32_ST_BIND(is_global ? STB_GLOBAL : STB_LOCAL);
+    sym.st_shndx = 4;  //FIXME: for now, it's in relation to .text
 
-    symtab_sh->sh_size += 1; //updating count, TODO: is this true?
-    symtab.push_back(sym);
+    symtab->header->sh_size += sizeof(Elf32_Sym); //update size
+    symtab->push_back(sym);
     return offset;
 }
 
@@ -173,7 +180,13 @@ void ELF32::add_to_data(){
 }
 
 void ELF32::add_to_symtab(Elf32_Sym& entry){
-    symtab.push_back(entry);
+    symtab->push_back(entry);
+}
+
+//TODO: does the entry mean a label or a string?
+//TODO: or a variable?
+void ELF32::add_to_symtab(std::string entry){
+    Elf32_Sym* sym = new Elf32_Sym();
 }
 
 void ELF32::update_elf_header(){
@@ -236,11 +249,12 @@ void ELF32::serialize(std::ostream& os){
     shstrtab->print_content();
     shstrtab->serialize(os);
 
+    symtab->serialize(os);
+
     std::cout << "beginning of the section header here: " << os.tellp() << std::endl;
     elf_header.e_shoff = static_cast<uint32_t>(os.tellp());
     elf_header.e_shnum = section_headers.size();
     std::cout << "# of section headers: " << section_headers.size() << std::endl;
-    //FIXME: we haven't added the symbol table
 
     // Add an empty header first?
     // TODO: update the ELF header's e_shoff field
@@ -248,7 +262,9 @@ void ELF32::serialize(std::ostream& os){
     for (std::vector<Elf32_Shdr *>::iterator it = section_headers.begin();
          it != section_headers.end(); ++it
         ){
-        std::cout << "sh_name: " << (*it)->sh_name << ", sh_size: " << (*it)->sh_size << ", sh_offset: " << std::hex << (*it)->sh_offset << std::endl;
+        std::cout << "sh_name: " << (*it)->sh_name 
+                  << ", sh_size: " << (*it)->sh_size 
+                  << ", sh_offset: " << std::hex << (*it)->sh_offset << std::endl;
         if ((*it)->sh_type == SHT_STRTAB){
             elf_header.e_shstrndx = std::distance(section_headers.begin(), it);
         }

@@ -239,14 +239,31 @@ typedef struct Elf32_Shdr
 #define STB_HIPROC 13
 #define STB_LOPROC 15
 
-// symbol table
+// Symbole Types
+#define STT_NOTYPE   0
+#define STT_OBJECT   1
+#define STT_FUNC     2
+#define STT_SECTION  3
+#define STT_FILE     4
+#define STT_COMMON   5
+#define STT_TLS      6
+#define STT_LOOS    10
+#define STT_HIOS    12
+#define STT_LOPROC  13
+#define STT_HIPROC  15
+
+#define ELF32_ST_VISIBILITY(o) ((o)&0x3)
+#define ELF64_ST_VISIBILITY(o) ((o)&0x3)
+
+// symbol table 
+// Reference: https://refspecs.linuxbase.org/elf/gabi4+/ch4.symtab.html
 typedef struct {
-    Elf32_Word     st_name;
-    Elf32_Addr     st_value;
-    Elf32_Word     st_size;
-    unsigned char  st_info;
-    unsigned char  st_other;
-    Elf32_Half     st_shndx;
+    Elf32_Word     st_name;      /* index into the symbol strtab */
+    Elf32_Addr     st_value;     /* the value of the associated symbol */
+    Elf32_Word     st_size;      /* size in bytes. 0 if unknown or none */
+    unsigned char  st_info;      /* type and binding attributes */
+    unsigned char  st_other;     /* symbol's visibility */
+    Elf32_Half     st_shndx;     /* ?? */
 } Elf32_Sym;
 
 typedef struct {
