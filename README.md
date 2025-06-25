@@ -19,12 +19,13 @@ This will result in an object file called `out.data`. you
 can open it with a hex viewer like `xxd out.data` to see
 the content.
 
-## Limitations
+## Features
 aka the work in progress
 - [x] initialize symbol table and string table
 - [x] add entry to the strtab
 - [x] proper offset calculation for section headers
-- [ ] add entry to the symtab
+- [x] add entry to the symtab
+- [ ] Use the symbol table to the full capacity
 - [ ] address/ref resolution (single or multi-pass?)
 - [ ] implement all instruction formats
 - [ ] relocation info
