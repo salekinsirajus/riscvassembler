@@ -86,9 +86,10 @@ statement:
     {
         currentLabel = $1;
         std::cout << "LABEL: directive (" << currentLabel << ")" << std::endl;
+        //TODO: add other type of values besides string
         if (temp_value.size() > 0){
             newElfContent.add_variable_to_symtab(currentLabel, temp_value, ".data");    
-            temp_value = "";
+            temp_value = "";  //reset
         }
     }
     | directive
@@ -111,10 +112,12 @@ directive:
     | D_TEXT
     {
         std::cout << ".text" << std::endl;
+        currentLabel = ".text";
     }
     | D_DATA
     {
         std::cout << ".data" << std::endl;
+        currentLabel = ".data";
     }
     | D_ASCII STRING
     {
