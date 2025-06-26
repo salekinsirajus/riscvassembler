@@ -1,6 +1,8 @@
 #ifndef ENCODING_H
 #define ENCODING_H
 
+#include <cstdint>
+
 typedef struct rtype32_t {
     unsigned opcode :7;
     unsigned rd     :5;

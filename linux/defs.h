@@ -1,6 +1,8 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+#include <cstdint>
+
 #define ELFCLASS32    1
 #define ELFCLASS64    2
 
