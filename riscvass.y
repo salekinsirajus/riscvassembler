@@ -110,19 +110,13 @@ directive:
     | D_ASCII STRING
     {
         printf("Store this string: %s\n", $2);
-        Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
-
-        newElfContent.add_to_symtab(currentString);
-        newElfContent.store_regular_string($2); //TODO: check whether it worked or failed
+        newElfContent.store_regular_string($2);
     }
     | ASSIGNMENT D_ASCII STRING
     {
         //same as above
         printf("assign this string to the var %s\n", $3);
-        Elf32_Sym currentString = {0, 0x1000, 4, 0, 0, 1};
-
-        newElfContent.add_to_symtab(currentString);
-        newElfContent.store_regular_string($3); //TODO: check whether it worked or failed
+        newElfContent.store_regular_string($3);
     }
     ;
 
