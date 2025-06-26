@@ -1,6 +1,6 @@
 %{
     // riscvass.y - the bison file
-    //for bison
+    // for bison
     #include <stdio.h>
     #include <iostream>
     #include "encoding.h"
@@ -9,18 +9,22 @@
 
     using namespace std;
 
-	ELF32 newElfContent;
-    //flex stuff bison needs
+    ELF32 newElfContent;
+
+    // flex stuff bison needs
     extern int yylex();
     extern int yyparse();
     extern FILE *yyin;
-
     void yyerror(const char *s);
-    //go from left to right
-    rtype32_t rtype_instr;
-    itype32_t itype_instr;
-    size_t  offset;
-    Section currentSection;
+
+    // go from left to right
+    rtype32_t    rtype_instr;
+    itype32_t    itype_instr;
+    size_t            offset;
+    std::string   temp_value;
+
+    Section   currentSection;
+    std::string currentLabel;
 %}
 
 %union {
@@ -49,12 +53,12 @@
 %token <token> TEXT
 %token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
 %token <token> D_ASCII
-%token <token> LABEL
-%token <token> ID
+%token <token> ID  //Might need to update this
 %token <token> ASSIGNMENT
 
 //non-terminals
 %token <sval> STRING
+%token <sval> LABEL
 %type <ival> register;
 %type <ival> imm;
 
@@ -76,15 +80,20 @@ statements:
 statement:
      LABEL COLON instructions
     {
-        cout<< ">> evaluating statement: instruction" << endl;
+        cout<< "LABEL: instructions" << endl;
     }
-    | LABEL directive
+    | LABEL COLON directive
     {
-        cout << ">> evaluating statement: directive" << endl;
+        currentLabel = $1;
+        std::cout << "LABEL: directive (" << currentLabel << ")" << std::endl;
+        if (temp_value.size() > 0){
+            newElfContent.add_variable_to_symtab(currentLabel, temp_value, ".data");    
+            temp_value = "";
+        }
     }
     | directive
     {
-        cout << ">> evaluating directive" << std::endl;
+        std::cout << "directive" << std::endl;
     }
     ;
 
@@ -95,28 +104,23 @@ directive:
     }
     | D_GLOBAL LABEL
     {
-        std::cout << ".globl LABEL" << std::endl;
-		std::cout << "label value: " << yylval.sval << std::endl; 
-		newElfContent.store_label(yylval.sval, true);
+        //what is this? LABEL is not terminal
+        std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
+        newElfContent.store_label($2, true);
     }
     | D_TEXT
     {
-        std::cout << ".text (emit and make current) " << std::endl;
+        std::cout << ".text" << std::endl;
     }
     | D_DATA
     {
-        std::cout << ".data (emit and make current) " << std::endl;
+        std::cout << ".data" << std::endl;
     }
     | D_ASCII STRING
     {
-        printf("Store this string: %s\n", $2);
-        newElfContent.store_regular_string($2);
-    }
-    | ASSIGNMENT D_ASCII STRING
-    {
-        //same as above
-        printf("assign this string to the var %s\n", $3);
-        newElfContent.store_regular_string($3);
+        //THIS way of doing is most likely wrong x = y. Might have to make it a terminal
+        std::cout << ".ascii STRING: " << currentLabel << std::endl;
+        temp_value = $2;
     }
     ;
 
@@ -130,36 +134,29 @@ instruction:
     {
         //R-format
         //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
-        std::cout << "R-format instruction " << std::endl;
+        std::cout << "opcode rx, ry, rz" << std::endl;
         rtype_instr.rs1 = $4;
         rtype_instr.rs2 = $6;
-
         newElfContent.add_to_text(rtype_instr); //TODO: add API
-        std::cout << "instr: " << rtype_instr << std::endl;
         std::memset(&rtype_instr, 0, sizeof(rtype_instr));
     }
     | opcode register COMMA register COMMA imm
     {
-        //cout << ">>>> op r, r, imm" << endl;
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        std::cout << "I-format instruction" << std::endl;
+        std::cout << "opcode rx, ry, $1" << std::endl;
         itype_instr.rs1 = $4;
         itype_instr.imm = $6;
-
         newElfContent.add_to_text(itype_instr); //TODO: add API
-        std::cout << "instr: " << itype_instr << std::endl;
         std::memset(&itype_instr, 0, sizeof(itype_instr));
     }
     | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
-        std::cout << "S-format instruction " << std::endl;
+        std::cout << "opcode rx, $8(ry)" << std::endl;
     }
     | ECALL
     {
         //is this goign to affect stuff?
-        std::cout << "ecall (syscall) invocation" << std::endl;
-        std::cout << "instr: " << rtype_instr << std::endl;
-
+        std::cout << "ecall (syscall)" << std::endl;
         newElfContent.add_to_text(rtype_instr);
         std::memset(&rtype_instr, 0, sizeof(rtype_instr));
     }

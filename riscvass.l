@@ -65,8 +65,6 @@
 
 "ecall"          { return ECALL; }
 
-_[a-zA-Z0-9]*    { yylval.sval = strdup(yytext); return LABEL; }
-
 "zero"           { return yylval.ival = 0; return REG; }
 
 [1-9]?[0-9]      {
@@ -85,9 +83,9 @@ _[a-zA-Z0-9]*    { yylval.sval = strdup(yytext); return LABEL; }
 \."ascii"        { return D_ASCII; }
 
 \.[a-zA-Z0-9]*   { return DIRECTIVE_COMMAND; }
-[a-zA-Z0-9]*:    { return ASSIGNMENT; }
-\"([^\"]*)\"     { yylval.sval = strdup(yytext);  return STRING; }
+[_]?[a-zA-Z0-9]* { yylval.sval = strdup(yytext); return LABEL; }
+\"([^\"]*)\"     { yylval.sval = strdup(yytext); return STRING; }
 ,                { return COMMA; }
-.                { cout << "Line "<< linenum << ": char " << charnum << ", unknown token. (" << yytext << ")" << endl; }
+.                { cout << "Line: "<< linenum << ": char " << charnum << ", unknown token. (" << yytext << ")" << endl; }
 %%
 

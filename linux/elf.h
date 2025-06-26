@@ -167,7 +167,11 @@ class ELF32{
 
         void   add_to_data();
         void   add_to_symtab(Elf32_Sym& symbol);
-        void   add_to_symtab(std::string entry);
+        void   add_variable_to_symtab(
+                   std::string name,
+                   std::string value,
+                   std::string section
+               );
 
         void   serialize(std::ostream& os);
         void   deserialize();

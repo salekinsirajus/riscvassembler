@@ -10,4 +10,6 @@ _start: addi  a0, x0, 1        # 1 = StdOut
         ecall                  # Call linux to terminate the program
 
 .data 
-helloworld:      .ascii "Hello World!\n"
+message:      .ascii "Hello World!\n"
+message2:     .ascii "second world."
+# TODO: differentiate between a variable label and section label

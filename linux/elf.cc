@@ -43,6 +43,7 @@ ELF32::ELF32(void){
     init_symtab();
     init_text_section();
     init_data_section();
+    printf("\n\n\n\n\n\n");
 }
 
 ELF32::~ELF32(){
@@ -185,8 +186,20 @@ void ELF32::add_to_symtab(Elf32_Sym& entry){
 
 //TODO: does the entry mean a label or a string?
 //TODO: or a variable?
-void ELF32::add_to_symtab(std::string entry){
-    Elf32_Sym* sym = new Elf32_Sym();
+void ELF32::add_variable_to_symtab(
+    std::string name, 
+    std::string value,
+    std::string section){
+
+    //We'll start with hardcoding to .data section
+    Elf32_Sym sym = {};
+    sym.st_name = store_regular_string(name); // strtab idx
+    sym.st_info = ELF32_ST_BIND(STB_LOCAL);   // TODO: accommodate global later)
+    sym.st_shndx = 1; // .data FIXME: find section index from the section value
+    sym.st_value = store_regular_string(value);   // offset in relation to the section identified in st_shndx
+    
+    symtab->push_back(sym);
+    symtab->header->sh_size += sizeof(Elf32_Sym);    
 }
 
 void ELF32::update_elf_header(){
