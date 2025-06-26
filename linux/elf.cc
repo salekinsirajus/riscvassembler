@@ -8,32 +8,99 @@
 #include "elf.h"
 #include "../encoding.h"
 
-// Make sure all the stuff is in place
-// TODO Entry point - does an assembler make the decision
-// to set the entry point, such as _main? Generally, it
-// is the beginning of the text section
+StringTable::StringTable(void) {
+    // Start with a null terminator
+    content.push_back('\0');
+}
 
-void write_elf(ELF32& elf, std::string filename) {
-    std::ostringstream elf_stream(std::ios::binary);
-    elf.serialize(elf_stream);
+size_t StringTable::add_string(const char* str) {
+    if (!str) throw std::invalid_argument("Null string passed");
 
-    // After updating the ELF header, write the byte stream to the file
-    std::ofstream elf_file(filename, std::ios::out | std::ios::binary);
-    if (!elf_file) {
-        std::cerr << "Unable to open file for writing.\n";
-        return;
+    // Insert before the final null terminator
+    size_t offset = content.size() - 1;
+    size_t len = std::strlen(str);
+
+    content.insert(content.end() - 1, str, str + len);
+    content.insert(content.end() - 1, '\0');
+
+    return offset;
+}
+const char* StringTable::get_string(size_t offset) const {
+    if (offset >= content.size()) throw std::out_of_range("Offset out of bounds");
+    return &content[offset];
+}
+
+const char* StringTable::get_all() const {
+    return content.data();
+}
+
+size_t StringTable::get_size() const {
+    return content.size();
+}
+
+void StringTable::serialize(std::ostream &os) const {
+    if (!header) throw std::runtime_error("Header not set");
+    os.seekp(0, std::ios_base::end); //get to the end
+
+    header->sh_offset = static_cast<uint32_t>(os.tellp());
+    header->sh_size = get_size();
+
+    os.write(reinterpret_cast<const char*>(content.data()), content.size());
+}
+
+void StringTable::print_content() const {
+    const size_t columns = 10;
+    size_t size = content.size();
+
+    // Print column headers
+    printf("\n========= strtab (size: %zu) =========\n", size);
+    printf("Offset |");
+    for (size_t col = 0; col < columns; ++col) {
+        printf(" %zu ", col);
+    }
+    printf("\n-------+------------------------------\n");
+
+    // Print content in rows of 10
+    for (size_t i = 0; i < size; i += columns) {
+        printf("%06zu |", i);  // Offset
+
+        for (size_t j = 0; j < columns; ++j) {
+            if (i + j < size) {
+                char c = content[i + j];
+                if (std::isprint(static_cast<unsigned char>(c))) {
+                    printf(" %c ", c);
+                } else {
+                    printf(" . ");
+                }
+            } else {
+                printf("   "); // Blank for missing cells
+            }
+        }
+        printf("\n");
     }
 
-    // Write the byte stream to the file
-    elf_file.write(elf_stream.str().data(), elf_stream.str().size());
+    printf("=======================================\n");
+}
 
-    elf_file.close();
 
-    if (!elf_file.good()) {
-        std::cerr << "Error occurred during writing!\n";
-    } else {
-        std::cout << "ELF file written successfully.\n";
-    }
+Symtab::Symtab(){
+}
+
+void Symtab::push_back(Elf32_Sym& sym){
+	data.push_back(sym);
+}
+
+size_t Symtab::get_size() const {
+	return (data.size() * sizeof(Elf32_Sym));
+}
+
+void Symtab::serialize(std::ostream& os){
+	if (data.size() > 0){
+		printf("size of symtab: %lu\n", data.size());
+		header->sh_offset = static_cast<uint32_t>(os.tellp());
+		header->sh_size = get_size();
+		os.write(reinterpret_cast<const char*>(data.data()), get_size());
+	}
 }
 
 ELF32::ELF32(void){
@@ -287,4 +354,32 @@ void ELF32::serialize(std::ostream& os){
     
     os.seekp(0, std::ios_base::beg);
     os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
+}
+
+// Make sure all the stuff is in place
+// TODO Entry point - does an assembler make the decision
+// to set the entry point, such as _main? Generally, it
+// is the beginning of the text section
+
+void write_elf(ELF32& elf, std::string filename) {
+    std::ostringstream elf_stream(std::ios::binary);
+    elf.serialize(elf_stream);
+
+    // After updating the ELF header, write the byte stream to the file
+    std::ofstream elf_file(filename, std::ios::out | std::ios::binary);
+    if (!elf_file) {
+        std::cerr << "Unable to open file for writing.\n";
+        return;
+    }
+
+    // Write the byte stream to the file
+    elf_file.write(elf_stream.str().data(), elf_stream.str().size());
+
+    elf_file.close();
+
+    if (!elf_file.good()) {
+        std::cerr << "Error occurred during writing!\n";
+    } else {
+        std::cout << "ELF file written successfully.\n";
+    }
 }

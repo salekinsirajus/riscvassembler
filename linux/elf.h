@@ -20,86 +20,25 @@
 //TODO: move the implementation to a separate file
 class StringTable {
 public:
-    StringTable() {
-        // Start with a null terminator
-        content.push_back('\0');
-    }
+    StringTable();
 
     // Adds a null-terminated string and returns its offset
-    size_t add_string(const char* str) {
-        if (!str) throw std::invalid_argument("Null string passed");
-
-        // Insert before the final null terminator
-        size_t offset = content.size() - 1;
-        size_t len = std::strlen(str);
-
-        content.insert(content.end() - 1, str, str + len);
-        content.insert(content.end() - 1, '\0');
-
-        return offset;
-    }
+    size_t add_string(const char* str);
 
     // Access string at offset
-    const char* get_string(size_t offset) const {
-        if (offset >= content.size()) throw std::out_of_range("Offset out of bounds");
-        return &content[offset];
-    }
+    const char* get_string(size_t offset) const;
 
     // Returns entire string table buffer
-    const char* get_all() const {
-        return content.data();
-    }
+    const char* get_all() const;
 
     // Returns total size including both nulls
-    size_t get_size() const {
-        return content.size();
-    }
+    size_t get_size() const;
 
     // Write string table to output stream and update header
-    void serialize(std::ostream &os) const {
-        if (!header) throw std::runtime_error("Header not set");
-        os.seekp(0, std::ios_base::end); //get to the end
+    void serialize(std::ostream &os) const;
 
-        header->sh_offset = static_cast<uint32_t>(os.tellp());
-        header->sh_size = get_size();
-
-        os.write(reinterpret_cast<const char*>(content.data()), content.size());
-    }
-
-    void print_content() const {
-        const size_t columns = 10;
-        size_t size = content.size();
-
-        // Print column headers
-        printf("\n========= strtab (size: %zu) =========\n", size);
-        printf("Offset |");
-        for (size_t col = 0; col < columns; ++col) {
-            printf(" %zu ", col);
-        }
-        printf("\n-------+------------------------------\n");
-
-        // Print content in rows of 10
-        for (size_t i = 0; i < size; i += columns) {
-            printf("%06zu |", i);  // Offset
-
-            for (size_t j = 0; j < columns; ++j) {
-                if (i + j < size) {
-                    char c = content[i + j];
-                    if (std::isprint(static_cast<unsigned char>(c))) {
-                        printf(" %c ", c);
-                    } else {
-                        printf(" . ");
-                    }
-                } else {
-                    printf("   "); // Blank for missing cells
-                }
-            }
-            printf("\n");
-        }
-
-        printf("=======================================\n");
-    }
-
+	// Debugging aid
+    void print_content() const;
 
     Elf32_Shdr* header;
 
@@ -109,29 +48,19 @@ private:
 
 class Symtab {
 public:
-    Symtab(){}
+    Symtab();
 
-    void push_back(Elf32_Sym& sym){
-        data.push_back(sym);
-    }
+    // TODO: consider if the name is okay since it's overload of a term
+    void push_back(Elf32_Sym& sym);
 
-    size_t get_size() const {
-        return (data.size() * sizeof(Elf32_Sym));
-    }
+    size_t get_size() const;
 
-    void serialize(std::ostream& os){
-        if (data.size() > 0){
-            printf("size of symtab: %lu", data.size());
-            header->sh_offset = static_cast<uint32_t>(os.tellp());
-            header->sh_size = get_size();
-            os.write(reinterpret_cast<const char*>(data.data()), get_size());
-        }
-    }
+    void serialize(std::ostream& os);
 
     Elf32_Shdr* header;
 
 private:
-     std::vector<Elf32_Sym>    data;          /* symbol table           */
+     std::vector<Elf32_Sym> data;
 };
 
 typedef struct Section {
