@@ -65,14 +65,16 @@
 
 "ecall"          { return ECALL; }
 
-"zero"           { return yylval.ival = 0; return REG; }
-
 [1-9]?[0-9]      {
                     //TODO:  need to differentiate bw imm vs offset
                     yylval.ival = atoi(&yytext[1]);
                     return IMM;
                  }
+zero             { yylval.ival = 0; return REG; }
 [arx][0-9]       { yylval.ival = atoi(&yytext[1]); return REG; }
+t0               { yylval.ival = 5; return REG; /* t0 = x5 */  }
+t1               { yylval.ival = 6; return REG; /* t1 = x6 */  }
+
 \."section"      { return SECTION; }
 \."text"         { return D_TEXT; }
 \."data"         { return D_DATA; }

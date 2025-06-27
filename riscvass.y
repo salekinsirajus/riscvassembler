@@ -103,6 +103,10 @@ directive:
     {
         std::cout << "section .data" << std::endl;
     }
+    | SECTION D_TEXT
+    {
+        std::cout << "section .text" << std::endl;
+    }
     | D_GLOBAL LABEL
     {
         //what is this? LABEL is not terminal
@@ -110,12 +114,12 @@ directive:
         newElfContent.store_label($2, true);
     }
     | D_TEXT
-    {
+    {   // FIXME: is this legit or should this be merged with the above
         std::cout << ".text" << std::endl;
         currentLabel = ".text";
     }
     | D_DATA
-    {
+    {   // FIXME: is this legit or should this be merged with the above
         std::cout << ".data" << std::endl;
         currentLabel = ".data";
     }
