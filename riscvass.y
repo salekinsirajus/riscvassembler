@@ -22,8 +22,7 @@
     itype32_t    itype_instr;
     size_t            offset;
     std::string   temp_value;
-
-    Section   currentSection;
+	std::string currentSection;
     std::string currentLabel;
 %}
 
@@ -102,30 +101,33 @@ directive:
      SECTION D_DATA
     {
         std::cout << "section .data" << std::endl;
+        currentSection = ".data";
+        currentLabel = ".data";
     }
     | SECTION D_TEXT
     {
         std::cout << "section .text" << std::endl;
-    }
-    | D_GLOBAL LABEL
-    {
-        //what is this? LABEL is not terminal
-        std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
-        newElfContent.store_label($2, true);
+        currentSection = ".text";
+        currentLabel = ".text";
     }
     | D_TEXT
-    {   // FIXME: is this legit or should this be merged with the above
+    {
         std::cout << ".text" << std::endl;
         currentLabel = ".text";
     }
     | D_DATA
-    {   // FIXME: is this legit or should this be merged with the above
+    {
         std::cout << ".data" << std::endl;
+        currentSection = ".data";
         currentLabel = ".data";
+    }
+    | D_GLOBAL LABEL
+    {
+        std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
+        newElfContent.store_label($2, true);
     }
     | D_ASCII STRING
     {
-        //THIS way of doing is most likely wrong x = y. Might have to make it a terminal
         std::cout << ".ascii STRING: " << currentLabel << std::endl;
         temp_value = $2;
     }
