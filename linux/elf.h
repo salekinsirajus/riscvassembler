@@ -52,9 +52,7 @@ public:
 
     // TODO: consider if the name is okay since it's overload of a term
     void push_back(Elf32_Sym& sym);
-
     size_t get_size() const;
-
     void serialize(std::ostream& os);
 
     Elf32_Shdr* header;

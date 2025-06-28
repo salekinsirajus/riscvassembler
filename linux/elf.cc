@@ -237,10 +237,12 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
 
 void ELF32::add_to_text(rtype32_t instr){
     sec_text->data.push_back(instr);
+	sec_text->header->sh_size += sizeof(instr);
 }
 
 void ELF32::add_to_text(itype32_t instr){
     sec_text->data.push_back(instr);
+	sec_text->header->sh_size += sizeof(instr);
 }
 
 void ELF32::add_to_data(){
