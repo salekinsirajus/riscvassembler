@@ -87,20 +87,20 @@ Symtab::Symtab(){
 }
 
 void Symtab::push_back(Elf32_Sym& sym){
-	data.push_back(sym);
+    data.push_back(sym);
 }
 
 size_t Symtab::get_size() const {
-	return (data.size() * sizeof(Elf32_Sym));
+    return (data.size() * sizeof(Elf32_Sym));
 }
 
 void Symtab::serialize(std::ostream& os){
-	if (data.size() > 0){
-		printf("size of symtab: %lu\n", data.size());
-		header->sh_offset = static_cast<uint32_t>(os.tellp());
-		header->sh_size = get_size();
-		os.write(reinterpret_cast<const char*>(data.data()), get_size());
-	}
+    if (data.size() > 0){
+        printf("size of symtab: %lu\n", data.size());
+        header->sh_offset = static_cast<uint32_t>(os.tellp());
+        header->sh_size = get_size();
+        os.write(reinterpret_cast<const char*>(data.data()), get_size());
+    }
 }
 
 ELF32::ELF32(void){
@@ -235,14 +235,20 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
     return offset;
 }
 
+
+void ELF32::add_to_text(uint32_t instr){
+    sec_text->data.push_back(instr);
+    sec_text->header->sh_size += sizeof(instr);
+}
+
 void ELF32::add_to_text(rtype32_t instr){
     sec_text->data.push_back(instr);
-	sec_text->header->sh_size += sizeof(instr);
+    sec_text->header->sh_size += sizeof(instr);
 }
 
 void ELF32::add_to_text(itype32_t instr){
     sec_text->data.push_back(instr);
-	sec_text->header->sh_size += sizeof(instr);
+    sec_text->header->sh_size += sizeof(instr);
 }
 
 void ELF32::add_to_data(){

@@ -37,7 +37,7 @@ public:
     // Write string table to output stream and update header
     void serialize(std::ostream &os) const;
 
-	// Debugging aid
+    // Debugging aid
     void print_content() const;
 
     Elf32_Shdr* header;
@@ -91,6 +91,7 @@ class ELF32{
         //TODO: templatize the following two
         void   add_to_text(itype32_t);
         void   add_to_text(rtype32_t);
+        void   add_to_text(uint32_t);
 
         void   add_to_data();
         void   add_to_symtab(Elf32_Sym& symbol);
