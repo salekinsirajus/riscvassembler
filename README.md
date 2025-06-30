@@ -25,8 +25,10 @@ aka the work in progress
 - [x] add entry to the strtab
 - [x] proper offset calculation for section headers
 - [x] add entry to the symtab
-- [ ] Use the symbol table to the full capacity
+- [x] add instructions to the text section
+- [ ] Implement all ISA instructions
+- [ ] Implement macro/psuedo instructions
 - [ ] address/ref resolution (single or multi-pass?)
-- [ ] implement all instruction formats
 - [ ] relocation info
+- [ ] Use the symbol table to the full capacity
 - [ ] directive support

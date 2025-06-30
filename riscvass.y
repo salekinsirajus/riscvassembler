@@ -18,12 +18,17 @@
     void yyerror(const char *s);
 
     // go from left to right
+    // TODO: remove the specific data type
     rtype32_t    rtype_instr;
     itype32_t    itype_instr;
+    uint32_t     temp_inst;
+
     size_t            offset;
     std::string   temp_value;
-	std::string currentSection;
+    std::string currentSection;
     std::string currentLabel;
+
+    std::vector<uint32_t> stk;
 %}
 
 %union {
@@ -31,14 +36,16 @@
     float       fval;
     char       *sval;
     int        token;
+    opcode_t   opc_t;
 }
 
-//Terminal symbols
-%token <token> ADD ADDI AND SUB SUBI LI BEQ BGE BGEU
-%token <token> BLT BLTU BNE LB LBU LH LHU LW OR ORI
+
+//Terminal symbols 
+// TODO - group them by types
+%token <token> ADD ADDI AND ANDI SUB SUBI LI LA BGE BGEU
+%token <token> BLT BLTU BEQ BNE LB LBU LH LHU LW OR ORI
 %token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA
 %token <token> SRAI SRL SRLI SW XOR XORI
-
 %token <token> ECALL
 
 %token <token> REG
@@ -60,6 +67,7 @@
 %token <sval> LABEL
 %type <ival> register;
 %type <ival> imm;
+%type <opc_t> opcode;
 
 %%
 //actual grammar
@@ -141,55 +149,69 @@ instructions:
 instruction:
     opcode register COMMA register COMMA register
     {
-        //R-format
+        //R-format: opcode dest, rs1, rs2
         //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
         std::cout << "opcode rx, ry, rz" << std::endl;
-        rtype_instr.rs1 = $4;
-        rtype_instr.rs2 = $6;
-        newElfContent.add_to_text(rtype_instr); //TODO: add API
-        std::memset(&rtype_instr, 0, sizeof(rtype_instr));
+        temp_inst = emit_r_type_instruction(0, $4, $6, 0, $2, ($1).op);
+        newElfContent.add_to_text(temp_inst); //TODO: add API
+
+        ($1).valid = 0;
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | opcode register COMMA register COMMA imm
     {
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        std::cout << "opcode rx, ry, $1" << std::endl;
-        itype_instr.rs1 = $4;
-        itype_instr.imm = $6;
-        newElfContent.add_to_text(itype_instr); //TODO: add API
-        std::memset(&itype_instr, 0, sizeof(itype_instr));
+        std::cout << "opcode rx, ry, imm" << std::endl;
+        temp_inst = emit_i_type_instruction($2, $4, $6, 0, ($1).op);
+        newElfContent.add_to_text(temp_inst); //TODO: add API
+
+        ($1).valid = 0;
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
         std::cout << "opcode rx, $8(ry)" << std::endl;
     }
-    | ECALL
+    | opcode
     {
-        //is this goign to affect stuff?
-        std::cout << "ecall (syscall)" << std::endl;
-        newElfContent.add_to_text(rtype_instr);
-        std::memset(&rtype_instr, 0, sizeof(rtype_instr));
+        //syscalls
+        std::cout << "ecall /syscall" << std::endl;
+		temp_inst = emit_i_type_instruction(
+           0,0,($1).imm12,0,($1).op
+        );
+        newElfContent.add_to_text(temp_inst);
+
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
+        ($1).valid = 0;
+    }
+    | psuedo_instruction
+    {
+        std::cout << "psuedo-instruction" << std::endl;
+    }
+    ;
+
+psuedo_instruction:
+    LA REG COMMA LABEL
+    {
+        std::cout << "la t0 addr" << std::endl;
+        //auipc t0, %pcrel_hi(addr);
+        //addi  t0, t0, %pcrel_lo(addr);
     }
     ;
 
 opcode:
-    ADD
-    {
-        rtype_instr.opcode = 0b0110011;
-        rtype_instr.funct7 = 0b0000000;
-    }
-    | SUB
-    {
-        rtype_instr.opcode = 0b0110011;
-        rtype_instr.funct7 = 0b0100000;
-    }
-    | ADDI
-    {
-        itype_instr.opcode = 0b0010011;
-    }
-    | ECALL
-    {
-        rtype_instr.opcode = 0b1110011;
-    }
+      ADDI  { $$ = {.op = 0x13, .funct3 = 0x0, .valid = 1}; }
+    | SLTI  { $$ = {.op = 0x13, .funct3 = 0x2, .valid = 1}; }
+    | SLTIU { $$ = {.op = 0x13, .funct3 = 0x3, .valid = 1}; }
+    | XORI  { $$ = {.op = 0x13, .funct3 = 0x4, .valid = 1}; }
+    | ORI   { $$ = {.op = 0x13, .funct3 = 0x5, .valid = 1}; }
+    | ANDI  { $$ = {.op = 0x13, .funct3 = 0x6, .valid = 1}; }
+	
+    | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; }
+
+    | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x0, .valid = 1}; }
+    | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; }
+    | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; }
     ;
 
 register:
