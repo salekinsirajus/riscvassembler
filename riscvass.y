@@ -76,7 +76,7 @@ program:
     statements
     {
         std::cout << "reading program" << std::endl;
-        write_elf(newElfContent, "out.data");
+        write_elf(newElfContent, "out.o");
     }
     ;
 

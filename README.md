@@ -1,6 +1,7 @@
 # RISC-V Assembler
-An assembler for RISC-V backend. Primarily for learning
-and hacking.
+A reference assembler for RISC-V backend. Primarily for learning
+and hacking. Implements the grammar described in the 
+[riscv-asm-manual](https://github.com/riscv-non-isa/riscv-asm-manual/blob/main/src/asm-manual.adoc)
 
 ## How to build
 Make sure `flex` and `bison` are present in your system.
@@ -15,8 +16,8 @@ object file.
 ./riscvass tests/helloworld.s
 ```
 
-This will result in an object file called `out.data`. you
-can open it with a hex viewer like `xxd out.data` to see
+This will result in an object file called `out.o`. you
+can open it with a hex viewer like `xxd out.o` to see
 the content.
 
 ## Features
