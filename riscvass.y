@@ -65,8 +65,8 @@
 //non-terminals
 %token <sval> STRING
 %token <sval> LABEL
-%type <ival> register;
-%type <ival> imm;
+%type <ival>  register;
+%type <ival>  imm;
 %type <opc_t> opcode;
 
 %%
@@ -172,15 +172,23 @@ instruction:
     {
         std::cout << "opcode rx, $8(ry)" << std::endl;
     }
+    | opcode register COMMA register COMMA LABEL
+    {
+        std::cout << "opcode x1, x2, label" << std::endl;
+        // TODO: resolve_label(LABEL);
+        temp_inst = emit_b_type_instruction(
+            0x0/*imm[12|10:5]*/,$4,$2,($1).funct3,0/*imm[4:1|11]*/,($1).op
+        );
+        newElfContent.add_to_text(temp_inst);
+    }
     | opcode
     {
         //syscalls
         std::cout << "ecall /syscall" << std::endl;
-		temp_inst = emit_i_type_instruction(
+        temp_inst = emit_i_type_instruction(
            0,0,($1).imm12,0,($1).op
         );
         newElfContent.add_to_text(temp_inst);
-
         std::memset(&temp_inst, 0, sizeof(temp_inst));
         ($1).valid = 0;
     }
@@ -206,7 +214,7 @@ opcode:
     | XORI  { $$ = {.op = 0x13, .funct3 = 0x4, .valid = 1}; }
     | ORI   { $$ = {.op = 0x13, .funct3 = 0x5, .valid = 1}; }
     | ANDI  { $$ = {.op = 0x13, .funct3 = 0x6, .valid = 1}; }
-	
+
     | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; }
 
     | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x0, .valid = 1}; }

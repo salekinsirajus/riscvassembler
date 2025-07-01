@@ -12,10 +12,10 @@
 strlen:
     # a0 = const char *str
     add  t0, zero, zero # i = 0
-L1: # Start of for loop
+L1: # Start of for loop  # TODO: support numeric labels as in asm manuals
     add  t1, t0, a0      # Add the byte offset for str[i]
 #    lb   t1, 0(t1)       # Dereference str[i]
-#    beq  t1, zero, 1f    # if str[i] == 0, break for loop
+    beq  t1, zero, 1f    # if str[i] == 0, break for loop
     addi t0, t0, 1       # Add 1 to our iterator
 #    jal  zero, 1b        # Jump back to condition (1 backwards)
 L1: # End of for loop

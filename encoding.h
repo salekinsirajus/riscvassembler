@@ -67,35 +67,44 @@ typedef struct stype32_t{
 uint32_t emit_s_type_instruction(unsigned rd, unsigned imm, unsigned opcode);
 
 typedef struct utype32_t{
-	unsigned opcode:  7;
-	unsigned     rd:  5;
-	unsigned    imm: 20;
+    unsigned opcode:  7;
+    unsigned     rd:  5;
+    unsigned    imm: 20;
 
-	operator uint32_t() const {
-		return (imm << 12)|(rd <<  7)| opcode;
-	}
+    operator uint32_t() const {
+        return (imm << 12)|(rd <<  7)| opcode;
+    }
 
 } utype32_t;
 uint32_t emit_u_type_instruction(unsigned jump_offset, unsigned opcode);
 
 typedef struct btype32_t{
+    unsigned opcode: 7;
+    unsigned  imm41: 5;
+    unsigned funct3: 3;
+    unsigned    rs1: 5;
+    unsigned    rs2: 5;
+    unsigned  imm12: 7;    
 
+    operator uint32_t() const {
+        return ((imm12 < 25)|(rs2 << 20)|(rs1 << 15)|(funct3 << 12)|(imm41 << 7)|opcode);
+    }
 } btype32_t;
 
 uint32_t emit_b_type_instruction(
-    unsigned imm_hi, unsigned rs1, unsigned rs2, 
-    unsigned imm_lo, unsigned funct3, unsigned opcode
+    unsigned imm12, unsigned rs1, unsigned rs2, 
+    unsigned funct3, unsigned imm41, unsigned opcode
 );
 
 // IMPORTANT - this is for the bison rules to be able to 
 // return complex data.
 typedef struct opcode_t {
-	unsigned op;
-	unsigned funct3;
-	unsigned funct5;
-	unsigned funct7;
-	unsigned imm12;
-	int      valid;
+    unsigned op;
+    unsigned funct3;
+    unsigned funct5;
+    unsigned funct7;
+    unsigned imm12;
+    int      valid;
 } opcode_t;
 
 #endif //ENCODING_H
