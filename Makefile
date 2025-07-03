@@ -1,5 +1,5 @@
 CXX = clang++
-CFLAGS = -g -std=c++11
+CFLAGS = -std=c++11
 TARGET = riscvass
 LEX = flex
 
