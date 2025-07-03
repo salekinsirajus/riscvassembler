@@ -87,6 +87,7 @@ class ELF32{
         size_t store_label(std::string label, bool is_global);
         size_t store_regular_string(std::string str);
         size_t store_section_name(std::string);
+        size_t resolve_label(std::string label); //TODO
 
         //TODO: templatize the following two
         void   add_to_text(itype32_t);

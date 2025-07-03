@@ -110,7 +110,7 @@ ELF32::ELF32(void){
     init_symtab();
     init_text_section();
     init_data_section();
-    printf("\n\n\n\n\n\n");
+    printf("\n\n");
 }
 
 ELF32::~ELF32(){
@@ -235,6 +235,11 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
     return offset;
 }
 
+size_t ELF32::resolve_label(std::string label){
+    //if the label already exists, return the offset
+    //if not put it in relocation entries?
+    return 0x04;
+}
 
 void ELF32::add_to_text(uint32_t instr){
     sec_text->data.push_back(instr);

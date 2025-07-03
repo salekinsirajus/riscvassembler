@@ -175,9 +175,9 @@ instruction:
     | opcode register COMMA register COMMA LABEL
     {
         std::cout << "opcode x1, x2, label" << std::endl;
-        // TODO: resolve_label(LABEL);
+        offset = newElfContent.resolve_label($6);
         temp_inst = emit_b_type_instruction(
-            0x0/*imm[12|10:5]*/,$4,$2,($1).funct3,0/*imm[4:1|11]*/,($1).op
+            offset, $2, $4, ($1).funct3, ($1).op
         );
         newElfContent.add_to_text(temp_inst);
     }

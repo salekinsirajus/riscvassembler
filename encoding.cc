@@ -4,10 +4,10 @@ uint32_t emit_l_type_instruction(unsigned rd, unsigned lui_imm, unsigned opcode)
 }
 
 uint32_t emit_i_type_instruction(
-    unsigned rd, 
+    unsigned rd,
     unsigned rs1,
     unsigned imm,
-    unsigned funct3, 
+    unsigned funct3,
     unsigned opcode){
 
     itype32_t i;
@@ -21,9 +21,9 @@ uint32_t emit_i_type_instruction(
 }
 
 uint32_t emit_r_type_instruction(
-    unsigned funct7, 
-    unsigned rs1, 
-    unsigned rs2, 
+    unsigned funct7,
+    unsigned rs1,
+    unsigned rs2,
     unsigned funct3,
     unsigned rd,
     unsigned opcode
@@ -42,17 +42,28 @@ uint32_t emit_r_type_instruction(
 }
 
 uint32_t emit_b_type_instruction(
-    unsigned imm12, unsigned rs2, unsigned rs1,
-    unsigned funct3, unsigned imm41, unsigned opcode
+    unsigned imm, unsigned rs2, unsigned rs1,
+    unsigned funct3, unsigned opcode
 )
 {
     btype32_t i;
+
     i.opcode = opcode;
-    i.imm41  = imm41;
     i.funct3 = funct3;
     i.rs2 = rs2;
     i.rs1 = rs1;
-    i.imm12 = imm12;
+
+    // imm:  C B A 9 8 7 6 5 4 3 2 1 0
+    // imm:  0 0 0 0 0 0 0 0 0 4 3 2 1
+    //                         1 1 1 1
+    i.imm4_1 = (imm >>  1) & 0xF;
+    // imm:  0 0 0 0 0 0 0 0 0 0 0 C B
+    i.imm11  = (imm >> 11) & 0x1;
+    // imm:  0 0 0 0 0 0 0 0 0 0 0 0 C
+    i.imm12  = (imm >> 12) & 0x1;
+    // imm:  0 0 0 0 0 C B A 9 8 7 6 5
+    //                     1 1 1 1 1 1
+    i.imm10_5=  (imm >> 5) & 0x3F;
 
     return static_cast<uint32_t>(i);
 }
