@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
+#include <map>
 
 #include <cctype> // for std::isprint
 
@@ -88,12 +89,10 @@ class ELF32{
         size_t store_regular_string(std::string str);
         size_t store_section_name(std::string);
         size_t resolve_label(std::string label); //TODO
+        size_t get_cursor(std::string section);
 
-        //TODO: templatize the following two
-        void   add_to_text(itype32_t);
-        void   add_to_text(rtype32_t);
+        void   resolve_forward_decls();
         void   add_to_text(uint32_t);
-
         void   add_to_data();
         void   add_to_symtab(Elf32_Sym& symbol);
         void   add_variable_to_symtab(
@@ -135,6 +134,11 @@ class ELF32{
         StringTable               *strtab;         /* string table (regular) */
         StringTable               *shstrtab;       /* section header strtab  */
         Symtab                    *symtab;         /* symbol table           */
+
+        std::map<std::string, uint32_t> labels;    /* LUT for label and addr */
+
+        // <offset in .text, and the label>
+        std::vector<std::pair<uint32_t, std::string>> forward_decls;
 };
 
 void write_elf(ELF32& elf, std::string filename);

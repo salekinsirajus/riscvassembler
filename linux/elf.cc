@@ -152,7 +152,7 @@ void ELF32::init_text_section(){
     sec_text->header = sh;
 
     sections.push_back(text);
-    sh->sh_name = store_section_name(".text");    
+    sh->sh_name = store_section_name(".text");
     std::cout << "TEXT: Section Header Idx: " << section_headers.size() << std::endl;
     section_headers.push_back(sh);
 }
@@ -175,7 +175,7 @@ void ELF32::init_data_section(){
 
     sections.push_back(data);      //is this working?
 
-    sh->sh_name = store_section_name(".data");    
+    sh->sh_name = store_section_name(".data");
     std::cout << "data_sh " << sh->sh_name << std::endl;
     std::cout << "DATA: Section Header Idx: " << section_headers.size() << std::endl;
     section_headers.push_back(sh);
@@ -185,7 +185,7 @@ void ELF32::init_strtables(){
     Elf32_Shdr* sh_strtab = new Elf32_Shdr();
     Elf32_Shdr* sh_shstrtab = new Elf32_Shdr();
     strtab = new StringTable();
-    shstrtab = new StringTable();    
+    shstrtab = new StringTable();
 
     strtab->header = sh_strtab;
     shstrtab->header = sh_shstrtab;
@@ -223,35 +223,48 @@ size_t ELF32::store_regular_string(std::string str){
 }
 
 size_t ELF32::store_label(std::string the_label, bool is_global){
-    size_t offset = store_regular_string(the_label); //FIXME: is it a regular string?
+    size_t idx_strtab = store_regular_string(the_label); //FIXME: is it a regular string?
 
     Elf32_Sym sym = {};
-    sym.st_name = offset;        // index into the string table
+    sym.st_name = idx_strtab;
     sym.st_info = ELF32_ST_BIND(is_global ? STB_GLOBAL : STB_LOCAL);
     sym.st_shndx = 4;  //FIXME: for now, it's in relation to .text
+    //update the map
+    labels[the_label] = get_cursor(".text"); // TODO: remove hardcoding
 
     symtab->header->sh_size += sizeof(Elf32_Sym); //update size
     symtab->push_back(sym);
-    return offset;
+    return idx_strtab;
 }
 
 size_t ELF32::resolve_label(std::string label){
     //if the label already exists, return the offset
     //if not put it in relocation entries?
-    return 0x04;
+    if (labels.count(label) == 0){
+        forward_decls.push_back(
+			std::make_pair(get_cursor(".text"), label)
+		); //location in .text, label
+    }
+    return labels[label]; // [] operator create a new key w default value
+}
+
+void ELF32::resolve_forward_decls(){
+	for (size_t i=0; i < forward_decls.size(); i++){
+		std::cout << "addr: " <<forward_decls[i].first << ", "
+		          << "labl: " <<forward_decls[i].second << std::endl;
+	}
+}
+
+size_t ELF32::get_cursor(std::string section){
+    // TODO: reduce hardcoding
+    if (section == ".text"){
+        return sec_text->data.size() * sizeof(uint32_t);
+    }
+
+    return 0;
 }
 
 void ELF32::add_to_text(uint32_t instr){
-    sec_text->data.push_back(instr);
-    sec_text->header->sh_size += sizeof(instr);
-}
-
-void ELF32::add_to_text(rtype32_t instr){
-    sec_text->data.push_back(instr);
-    sec_text->header->sh_size += sizeof(instr);
-}
-
-void ELF32::add_to_text(itype32_t instr){
     sec_text->data.push_back(instr);
     sec_text->header->sh_size += sizeof(instr);
 }
@@ -267,7 +280,7 @@ void ELF32::add_to_symtab(Elf32_Sym& entry){
 //TODO: does the entry mean a label or a string?
 //TODO: or a variable?
 void ELF32::add_variable_to_symtab(
-    std::string name, 
+    std::string name,
     std::string value,
     std::string section){
 
@@ -277,9 +290,9 @@ void ELF32::add_variable_to_symtab(
     sym.st_info = ELF32_ST_BIND(STB_LOCAL);   // TODO: accommodate global later)
     sym.st_shndx = 1; // .data FIXME: find section index from the section value
     sym.st_value = store_regular_string(value);   // offset in relation to the section identified in st_shndx
-    
+
     symtab->push_back(sym);
-    symtab->header->sh_size += sizeof(Elf32_Sym);    
+    symtab->header->sh_size += sizeof(Elf32_Sym);
 }
 
 void ELF32::update_elf_header(){
@@ -355,8 +368,8 @@ void ELF32::serialize(std::ostream& os){
     for (std::vector<Elf32_Shdr *>::iterator it = section_headers.begin();
          it != section_headers.end(); ++it
         ){
-        std::cout << "sh_name: " << (*it)->sh_name 
-                  << ", sh_size: " << (*it)->sh_size 
+        std::cout << "sh_name: " << (*it)->sh_name
+                  << ", sh_size: " << (*it)->sh_size
                   << ", sh_offset: " << std::hex << (*it)->sh_offset << std::endl;
         if ((*it)->sh_type == SHT_STRTAB){
             elf_header.e_shstrndx = std::distance(section_headers.begin(), it);
@@ -364,7 +377,7 @@ void ELF32::serialize(std::ostream& os){
         os.write(reinterpret_cast<const char*>((*it)), sizeof(Elf32_Shdr));
         pos += sizeof(Elf32_Shdr);
     }
-    
+
     os.seekp(0, std::ios_base::beg);
     os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
 }

@@ -28,7 +28,7 @@
     std::string currentSection;
     std::string currentLabel;
 
-    std::vector<uint32_t> stk;
+    std::vector<uint32_t> stk; //unused
 %}
 
 %union {
@@ -76,6 +76,7 @@ program:
     statements
     {
         std::cout << "reading program" << std::endl;
+        newElfContent.resolve_forward_decls();
         write_elf(newElfContent, "out.o");
     }
     ;
