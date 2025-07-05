@@ -229,8 +229,8 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
     sym.st_name = idx_strtab;
     sym.st_info = ELF32_ST_BIND(is_global ? STB_GLOBAL : STB_LOCAL);
     sym.st_shndx = 4;  //FIXME: for now, it's in relation to .text
-    //update the map
-    labels[the_label] = get_cursor(".text"); // TODO: remove hardcoding
+    //update the map   //TODO: add an API
+    labels[the_label] = sec_text->last_index(); //idx into text
 
     symtab->header->sh_size += sizeof(Elf32_Sym); //update size
     symtab->push_back(sym);
@@ -242,16 +242,35 @@ size_t ELF32::resolve_label(std::string label){
     //if not put it in relocation entries?
     if (labels.count(label) == 0){
         forward_decls.push_back(
-			std::make_pair(get_cursor(".text"), label)
+			std::make_pair(sec_text->last_index(), label)
 		); //location in .text, label
+        labels[label] = 0xffffffff;
     }
+
     return labels[label]; // [] operator create a new key w default value
 }
 
 void ELF32::resolve_forward_decls(){
+    // TODO: we should probably create a specific struct so the
+    // TODO: context could be saved and updated later on. If it's
+    // TODO: PC-relative or absolute or whatever else.
 	for (size_t i=0; i < forward_decls.size(); i++){
 		std::cout << "addr: " <<forward_decls[i].first << ", "
 		          << "labl: " <<forward_decls[i].second << std::endl;
+        // deserialize the instruction at the addr
+        int text_idx = forward_decls[i].first;
+        std::cout << "original inst: " << std::hex << sec_text->data[text_idx] << std::endl;
+        uint32_t resolved_addr = labels[forward_decls[i].second];
+        // unpack it into the type that we recorded
+        btype32_t temp = btype32_t::deserialize(sec_text->data[text_idx]); 
+        // update fields
+        uint32_t updated_inst = emit_b_type_instruction(
+            resolved_addr, temp.rs1, temp.rs2, temp.funct3, temp.opcode
+        );
+        // serialize
+        sec_text->data[text_idx] = updated_inst;
+        // place it back where it was
+        std::cout << "updated inst: " << std::hex << sec_text->data[text_idx] << std::endl;
 	}
 }
 

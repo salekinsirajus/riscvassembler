@@ -36,7 +36,8 @@ aka the work in progress
 - [x] proper offset calculation for section headers
 - [x] add entry to the symtab
 - [x] add instructions to the text section
-- [ ] address/ref resolution (single or multi-pass?)
+- [ ] address/ref resolution (single pass?)
+- [ ] local label (1b, 2f, etc.)
 - [ ] Implement all ISA instructions
 - [ ] Implement macro/psuedo instructions
 - [ ] relocation info

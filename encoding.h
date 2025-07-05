@@ -95,6 +95,20 @@ typedef struct btype32_t{
                  |(rs1 << 15)|(funct3 << 12) |(imm4_1 << 8)
                  |(imm11<< 7)|opcode);
     }
+   
+    static btype32_t deserialize(uint32_t val) {
+        btype32_t i;
+        i.opcode   = val & 0x7F;                // bits 6:0
+        i.imm11    = (val >> 7) & 0x1;          // bit 7
+        i.imm4_1   = (val >> 8) & 0xF;          // bits 11:8
+        i.funct3   = (val >> 12) & 0x7;         // bits 14:12
+        i.rs1      = (val >> 15) & 0x1F;        // bits 19:15
+        i.rs2      = (val >> 20) & 0x1F;        // bits 24:20
+        i.imm10_5  = (val >> 25) & 0x3F;        // bits 30:25
+        i.imm12    = (val >> 31) & 0x1;         // bit 31
+        return i;
+    }
+
 } btype32_t;
 
 uint32_t emit_b_type_instruction(
@@ -112,5 +126,13 @@ typedef struct opcode_t {
     unsigned imm12;
     int      valid;
 } opcode_t;
+
+enum RISCV32BI{
+	B_TYPE,
+	R_TYPE,
+	I_TYPE,
+	S_TYPE,	
+	U_TYPE,
+};
 
 #endif //ENCODING_H

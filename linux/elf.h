@@ -71,6 +71,11 @@ typedef struct Section {
     size_t size() const {
         return data.size() * sizeof(uint32_t);
     }
+
+    int last_index() const {
+        return data.size() - 1;
+    }
+
 } Section;
 
 // what we need for the assembler and what we dont need
