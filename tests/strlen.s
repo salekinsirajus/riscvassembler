@@ -9,7 +9,7 @@ loop:
 #    lb      t1, 0(t1)          # t1 = str[i]
     beq     t1, zero, done     # if str[i] == 0, break
     addi    t0, t0, 1          # i++
-#    j       loop               # repeat
+    j       loop               # repeat
 
 done:
 #    mv      a0, t0             # return i in a0

@@ -238,6 +238,11 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
 }
 
 size_t ELF32::resolve_label(std::string label){
+	std::cout << "====Existing Labels=====" << std::endl;
+	for (auto &pair : labels){
+		std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
+	}
+	std::cout << "========================" << std::endl;
     //if the label already exists, return the offset
     //if not put it in relocation entries?
     if (labels.count(label) == 0){

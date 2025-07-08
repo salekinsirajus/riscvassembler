@@ -28,6 +28,8 @@
 ")"              { return PAREN_CLOSE; }
 ":"              { return COLON; }
 
+"j"              { return JUMP; }
+
 "add"            { return ADD; }
 "addi"           { return ADDI; }
 "and"            { return AND; }

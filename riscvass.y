@@ -42,25 +42,26 @@
 
 //Terminal symbols 
 // TODO - group them by types
-%token <token> ADD ADDI AND ANDI SUB SUBI LI LA BGE BGEU
-%token <token> BLT BLTU BEQ BNE LB LBU LH LHU LW OR ORI
-%token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA
-%token <token> SRAI SRL SRLI SW XOR XORI
-%token <token> ECALL
-
 %token <token> REG
 %token <token> COMMA
 %token <token> COLON
 %token <ival>  IMM
 %token <token> PAREN_OPEN PAREN_CLOSE
+%token <token> ID  //Might need to update this
+%token <token> ASSIGNMENT
+
+%token <token> ADD ADDI AND ANDI SUB SUBI LI LA BGE BGEU
+%token <token> BLT BLTU BEQ BNE LB LBU LH LHU LW OR ORI
+%token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA
+%token <token> SRAI SRL SRLI SW XOR XORI
+%token <token> ECALL
+%token <token> JUMP
 
 %token <token> SECTION
 %token <token> DIRECTIVE_COMMAND
 %token <token> TEXT
 %token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
 %token <token> D_ASCII
-%token <token> ID  //Might need to update this
-%token <token> ASSIGNMENT
 
 //non-terminals
 %token <sval> STRING
@@ -89,12 +90,15 @@ statement:
      LABEL COLON instructions
     {
         cout<< "LABEL: instructions" << endl;
+        //TODO: check if the label exists
+        newElfContent.store_label($1, false/*is_global*/);
     }
     | LABEL COLON directive
     {
         currentLabel = $1;
         std::cout << "LABEL: directive (" << currentLabel << ")" << std::endl;
         //TODO: add other type of values besides string
+        //FIXME: is this even correct?
         if (temp_value.size() > 0){
             newElfContent.add_variable_to_symtab(currentLabel, temp_value, ".data");    
             temp_value = "";  //reset
@@ -205,6 +209,13 @@ psuedo_instruction:
         std::cout << "la t0 addr" << std::endl;
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
+    }
+    | JUMP LABEL
+    {
+        std::cout << "j label" << std::endl;
+        // alais for risc-v 32base int ISA: jal x0 label
+        offset = newElfContent.resolve_label($2); 
+        std::cout << "resolved label to: " << offset << std::endl;
     }
     ;
 
