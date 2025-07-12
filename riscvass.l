@@ -49,6 +49,7 @@
 "lh"             { return LH; }
 "lhu"            { return LHU; }
 "lw"             { return LW; }
+"mv"             { return MOV; }
 "or"             { return OR; }
 "ori"            { return ORI; }
 "sb"             { return SB; }
@@ -66,8 +67,9 @@
 "sw"             { return SW; }
 "xor"            { return XOR; }
 "xori"           { return XORI; }
-
 "ecall"          { return ECALL; }
+
+"ret"            { return RET; }
 
 [1-9]?[0-9]      {
                     //TODO:  need to differentiate bw imm vs offset

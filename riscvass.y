@@ -55,7 +55,8 @@
 %token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA
 %token <token> SRAI SRL SRLI SW XOR XORI
 %token <token> ECALL
-%token <token> JUMP
+
+%token <token> JUMP MOV RET
 
 %token <token> SECTION
 %token <token> DIRECTIVE_COMMAND
@@ -204,11 +205,16 @@ instruction:
     ;
 
 psuedo_instruction:
-    LA REG COMMA LABEL
+      LA REG COMMA LABEL
     {
         std::cout << "la t0 addr" << std::endl;
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
+    }
+    | LB REG COMMA LABEL
+    {
+        std::cout << "lb rx, label" << std::endl;
+        //TODO: differentiate between label and symbol
     }
     | JUMP LABEL
     {
@@ -216,6 +222,19 @@ psuedo_instruction:
         // alais for risc-v 32base int ISA: jal x0 label
         offset = newElfContent.resolve_label($2); 
         std::cout << "resolved label to: " << offset << std::endl;
+        // TODO: encode this
+    }
+    | MOV REG COMMA REG
+    {
+        std::cout << "mv rd, rs" << std::endl;
+        //addi rd, rs, x0
+        temp_inst = emit_i_type_instruction($2, $4, 0, 0x0/*funct3*/, 0x13/*addi*/);
+        newElfContent.add_to_text(temp_inst);
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
+    }
+    | RET
+    {
+        std::cout << "jalr x0, x1, x0" << std::endl;
     }
     ;
 
@@ -229,7 +248,7 @@ opcode:
 
     | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; }
 
-    | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x0, .valid = 1}; }
+    | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; }
     | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; }
     | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; }
     ;
