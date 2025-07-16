@@ -218,11 +218,14 @@ psuedo_instruction:
     }
     | JUMP LABEL
     {
+        // alais for risc-v 32base int ISA: jal x0, label
         std::cout << "j label" << std::endl;
-        // alais for risc-v 32base int ISA: jal x0 label
         offset = newElfContent.resolve_label($2); 
         std::cout << "resolved label to: " << offset << std::endl;
-        // TODO: encode this
+        temp_inst = emit_u_type_instruction(offset, 0 /*rd=x0*/, 0x6f); 
+        newElfContent.add_to_text(temp_inst);
+        std::memset(&temp_inst, 0, sizeof(temp_inst)); 
+        //TODO: remove hardcoded opcode and use an enum instead
     }
     | MOV REG COMMA REG
     {
@@ -245,12 +248,12 @@ opcode:
     | XORI  { $$ = {.op = 0x13, .funct3 = 0x4, .valid = 1}; }
     | ORI   { $$ = {.op = 0x13, .funct3 = 0x5, .valid = 1}; }
     | ANDI  { $$ = {.op = 0x13, .funct3 = 0x6, .valid = 1}; }
+    | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; }
 
     | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; }
 
     | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; }
     | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; }
-    | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; }
     ;
 
 register:

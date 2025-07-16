@@ -78,7 +78,7 @@ typedef struct utype32_t{
     }
 
 } utype32_t;
-uint32_t emit_u_type_instruction(unsigned jump_offset, unsigned opcode);
+uint32_t emit_u_type_instruction(unsigned imm, unsigned rd, unsigned opcode);
 
 typedef struct btype32_t{
     unsigned  opcode: 7;

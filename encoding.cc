@@ -3,6 +3,16 @@
 uint32_t emit_l_type_instruction(unsigned rd, unsigned lui_imm, unsigned opcode){
 }
 
+uint32_t emit_u_type_instruction(unsigned imm, unsigned rd, unsigned opcode)
+{
+    utype32_t i;
+    i.opcode = opcode;
+    i.rd = rd;
+    i.imm = imm;
+
+    return static_cast<uint32_t>(i);
+}
+
 uint32_t emit_i_type_instruction(
     unsigned rd,
     unsigned rs1,
