@@ -25,9 +25,9 @@ the content.
 _This portion is for scratch notes as I am working through
 a feature or a component_
 
-- Added a map for keeping track of forward declarations
-- Calling a function at the end to resolve them
-- However, I don't know how to deserialize, update addr, and reserialize
+- encode unconditional jump properly
+- make sure the immediates are encoded properly: e.g. imm[31:12]
+means encode the bits 12 to 31.
 
 ## Features
 aka the work in progress
@@ -36,10 +36,10 @@ aka the work in progress
 - [x] proper offset calculation for section headers
 - [x] add entry to the symtab
 - [x] add instructions to the text section
+- [ ] Implement macro/psuedo instructions
 - [ ] address/ref resolution (single pass?)
 - [ ] local label (1b, 2f, etc.)
 - [ ] Implement all ISA instructions
-- [ ] Implement macro/psuedo instructions
 - [ ] relocation info
 - [ ] Use the symbol table to the full capacity
 - [ ] directive support
