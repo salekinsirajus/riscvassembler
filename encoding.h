@@ -127,7 +127,7 @@ typedef struct opcode_t {
     int      valid;
 } opcode_t;
 
-enum RISCV32BI{
+enum RISCV32_INST_TYPE {
 	B_TYPE,
 	R_TYPE,
 	I_TYPE,

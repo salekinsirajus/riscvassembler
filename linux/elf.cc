@@ -237,19 +237,48 @@ size_t ELF32::store_label(std::string the_label, bool is_global){
     return idx_strtab;
 }
 
+//TODO: figure out if it's necessary to return anything?
+//TODO: consider where does this belong the best in terms of funcitonality
+//TODO: address resolution is a core component of the assembler and not the backend
+int32_t ELF32::resolve_label(std::string label, std::string current_section, int inst_type, bool is_local)
+{
+    if (labels.count(label) == 0)
+    {
+        UnresolvedInst32 inst;
+        inst.is_resolved = false;
+        inst.offset = UNRESOLVED_ADDR;
+        inst.is_local = is_local;
+        inst.inst_type = inst_type;
+        unresolved_instructions.push_back(inst); 
+
+        labels[label] = inst.offset;
+        return inst.offset;
+    }
+
+    return labels[label];
+}
+
 size_t ELF32::resolve_label(std::string label){
-	std::cout << "====Existing Labels=====" << std::endl;
-	for (auto &pair : labels){
-		std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
-	}
-	std::cout << "========================" << std::endl;
+    //TODO: figure out how to differentiate between the data (string) and code
+    //TODO: labels
+    std::cout << "====Existing Labels=====" << std::endl;
+    for (auto &pair : labels){
+        std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
+    }
+    std::cout << "========================" << std::endl;
     //if the label already exists, return the offset
     //if not put it in relocation entries?
     if (labels.count(label) == 0){
         forward_decls.push_back(
-			std::make_pair(sec_text->last_index(), label)
-		); //location in .text, label
-        labels[label] = 0xffffffff;
+            std::make_pair(sec_text->last_index(), label)
+        ); //location in .text, label
+        labels[label] = UNRESOLVED_ADDR;
+        UnresolvedInst32 inst;
+        inst.is_resolved = false;
+        inst.offset = 0x0;
+        inst.is_local = false; //need a param?
+        inst.inst_type = 1;    //need an enum, need a param
+        unresolved_instructions.push_back(inst); 
     }
 
     return labels[label]; // [] operator create a new key w default value
@@ -259,9 +288,9 @@ void ELF32::resolve_forward_decls(){
     // TODO: we should probably create a specific struct so the
     // TODO: context could be saved and updated later on. If it's
     // TODO: PC-relative or absolute or whatever else.
-	for (size_t i=0; i < forward_decls.size(); i++){
-		std::cout << "addr: " <<forward_decls[i].first << ", "
-		          << "labl: " <<forward_decls[i].second << std::endl;
+    for (size_t i=0; i < forward_decls.size(); i++){
+        std::cout << "addr: " <<forward_decls[i].first << ", "
+                  << "labl: " <<forward_decls[i].second << std::endl;
         // deserialize the instruction at the addr
         int text_idx = forward_decls[i].first;
         std::cout << "original inst: " << std::hex << sec_text->data[text_idx] << std::endl;
@@ -269,6 +298,7 @@ void ELF32::resolve_forward_decls(){
         // unpack it into the type that we recorded
         btype32_t temp = btype32_t::deserialize(sec_text->data[text_idx]); 
         // update fields
+        // TODO: is it always b-type? NO
         uint32_t updated_inst = emit_b_type_instruction(
             resolved_addr, temp.rs1, temp.rs2, temp.funct3, temp.opcode
         );
@@ -276,7 +306,7 @@ void ELF32::resolve_forward_decls(){
         sec_text->data[text_idx] = updated_inst;
         // place it back where it was
         std::cout << "updated inst: " << std::hex << sec_text->data[text_idx] << std::endl;
-	}
+    }
 }
 
 size_t ELF32::get_cursor(std::string section){
