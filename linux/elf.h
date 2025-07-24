@@ -82,6 +82,15 @@ typedef struct Section {
 // Relocatable object files do not need a program header table. (solaris)
 // A relocateble object must have a section header table
 
+typedef struct UnresolvedInst32 {
+    bool      is_resolved;
+    uint32_t         inst;
+    int32_t        offset;
+    bool         is_local;
+    int8_t      inst_type;
+    int8_t       sh_index; // index into section header vector
+} UnresolvedInst32;
+
 class ELF32{
     public:
         ELF32(void);
@@ -93,8 +102,14 @@ class ELF32{
         size_t store_label(std::string label, bool is_global);
         size_t store_regular_string(std::string str);
         size_t store_section_name(std::string);
-        size_t resolve_label(std::string label); //TODO
+        size_t resolve_label(std::string label);
         size_t get_cursor(std::string section);
+        int32_t resolve_label(
+            std::string label, 
+            std::string section, 
+            int inst_type, 
+            bool is_local
+        );
 
         void   resolve_forward_decls();
         void   add_to_text(uint32_t);
@@ -144,6 +159,10 @@ class ELF32{
 
         // <offset in .text, and the label>
         std::vector<std::pair<uint32_t, std::string>> forward_decls;
+        std::vector<UnresolvedInst32> unresolved_instructions;
+
+        // constants
+        const uint32_t UNRESOLVED_ADDR = 0xDEADBEEF;
 };
 
 void write_elf(ELF32& elf, std::string filename);

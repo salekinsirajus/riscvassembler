@@ -138,7 +138,7 @@ directive:
     | D_GLOBAL LABEL
     {
         std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
-        newElfContent.store_label($2, true);
+        newElfContent.store_label($2, true/*is_global*/);
     }
     | D_ASCII STRING
     {
@@ -182,6 +182,9 @@ instruction:
     {
         std::cout << "opcode x1, x2, label" << std::endl;
         offset = newElfContent.resolve_label($6);
+        offset = newElfContent.resolve_label(
+           $6, currentSection, B_TYPE, true
+        );
         temp_inst = emit_b_type_instruction(
             offset, $2, $4, ($1).funct3, ($1).op
         );
