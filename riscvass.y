@@ -79,6 +79,7 @@ program:
     {
         std::cout << "reading program" << std::endl;
         newElfContent.resolve_forward_decls();
+        newElfContent._resolve_unresolved_instructions();
         write_elf(newElfContent, "out.o");
     }
     ;

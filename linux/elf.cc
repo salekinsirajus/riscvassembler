@@ -284,6 +284,15 @@ size_t ELF32::resolve_label(std::string label){
     return labels[label]; // [] operator create a new key w default value
 }
 
+void ELF32::_resolve_unresolved_instructions()
+{
+    std::cout << "new function resolve_unresolved_instr" << std::endl;
+    for (size_t i=0; i <unresolved_instructions.size(); i++)
+    {
+        std::cout << "offset: " << unresolved_instructions[i].offset << std::endl;
+    }
+}
+
 void ELF32::resolve_forward_decls(){
     // TODO: we should probably create a specific struct so the
     // TODO: context could be saved and updated later on. If it's

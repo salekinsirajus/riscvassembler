@@ -19,7 +19,8 @@
 #include <cctype> // for std::isprint
 
 //TODO: move the implementation to a separate file
-class StringTable {
+class StringTable
+{
 public:
     StringTable();
 
@@ -47,7 +48,8 @@ private:
     std::vector<char> content;
 };
 
-class Symtab {
+class Symtab
+{
 public:
     Symtab();
 
@@ -82,7 +84,8 @@ typedef struct Section {
 // Relocatable object files do not need a program header table. (solaris)
 // A relocateble object must have a section header table
 
-typedef struct UnresolvedInst32 {
+typedef struct UnresolvedInst32
+{
     bool      is_resolved;
     uint32_t         inst;
     int32_t        offset;
@@ -91,7 +94,8 @@ typedef struct UnresolvedInst32 {
     int8_t       sh_index; // index into section header vector
 } UnresolvedInst32;
 
-class ELF32{
+class ELF32
+{
     public:
         ELF32(void);
         ~ELF32();
@@ -104,6 +108,7 @@ class ELF32{
         size_t store_section_name(std::string);
         size_t resolve_label(std::string label);
         size_t get_cursor(std::string section);
+
         int32_t resolve_label(
             std::string label, 
             std::string section, 
@@ -111,18 +116,18 @@ class ELF32{
             bool is_local
         );
 
-        void   resolve_forward_decls();
-        void   add_to_text(uint32_t);
-        void   add_to_data();
-        void   add_to_symtab(Elf32_Sym& symbol);
-        void   add_variable_to_symtab(
-                   std::string name,
-                   std::string value,
-                   std::string section
-               );
-
-        void   serialize(std::ostream& os);
-        void   deserialize();
+        void resolve_forward_decls();
+        void _resolve_unresolved_instructions();
+        void add_to_text(uint32_t);
+        void add_to_data();
+        void add_to_symtab(Elf32_Sym& symbol);
+        void add_variable_to_symtab(
+                 std::string name,
+                 std::string value,
+                 std::string section
+             );
+        void serialize(std::ostream& os);
+        void deserialize();
 
         Elf32_Ehdr& get_elf_header(){ return elf_header; }
 
