@@ -78,7 +78,6 @@ program:
     statements
     {
         std::cout << "reading program" << std::endl;
-        newElfContent.resolve_forward_decls();
         newElfContent._resolve_unresolved_instructions();
         write_elf(newElfContent, "out.o");
     }
@@ -92,8 +91,8 @@ statement:
      LABEL COLON instructions
     {
         cout<< "LABEL: instructions" << endl;
-        //TODO: check if the label exists
-        newElfContent.store_label($1, false/*is_global*/);
+        // This is where a label and associated instructions start
+        newElfContent.init_label($1, false/*is_global*/, currentSection);
     }
     | LABEL COLON directive
     {
@@ -139,7 +138,7 @@ directive:
     | D_GLOBAL LABEL
     {
         std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
-        newElfContent.store_label($2, true/*is_global*/);
+        //newElfContent.update_label_visibility($2, true); //TODO: implemet API to modify visibility
     }
     | D_ASCII STRING
     {
@@ -183,9 +182,10 @@ instruction:
     {
         std::cout << "opcode x1, x2, label" << std::endl;
         offset = newElfContent.resolve_label($6);
-        offset = newElfContent.resolve_label(
-           $6, currentSection, B_TYPE, true
-        );
+        //offset = newElfContent.resolve_label( $6, currentSection, B_TYPE, true);
+        // TODO: check if lable resolution is successful or not
+        // TODO: then either move or store it temporarily?
+        // TODO: perhaps bring out the logic here?
         temp_inst = emit_b_type_instruction(
             offset, $2, $4, ($1).funct3, ($1).op
         );

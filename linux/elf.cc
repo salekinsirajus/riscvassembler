@@ -121,12 +121,14 @@ void ELF32::init_symtab(){
     Elf32_Shdr* sh = new Elf32_Shdr();
     std::memset(sh, 0, sizeof(Elf32_Shdr));
 
+    std::string section_name = ".symtab";
+
     sh->sh_size = 0;
     sh->sh_type = SHT_SYMTAB;
     sh->sh_entsize = sizeof(Elf32_Sym);
     //sh->sh_flag = SHF_ALLOC; // TODO: confirm this
 
-    sh->sh_name = store_section_name(".symtab");
+    sh->sh_name = store_section_name(section_name);
     sh->sh_link = 1; // FIXME: sh idx of whichever string table
     sh->sh_info = 1;  // last STB_LOCAL index in the symtab + 1
     std::cout << "Symtab sh_name: " << sh->sh_name << std::endl;
@@ -140,11 +142,13 @@ void ELF32::init_symtab(){
     symtab->push_back(first);
 
     std::cout << "SYMTAB: Section Header Idx: " << section_headers.size() << std::endl;
+    section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
 }
 
 void ELF32::init_text_section(){
     Section* text = new Section();
+    std::string section_name = ".text";
 
     Elf32_Shdr* sh = new Elf32_Shdr();
     sh->sh_type = SHT_PROGBITS;
@@ -152,8 +156,9 @@ void ELF32::init_text_section(){
     sec_text->header = sh;
 
     sections.push_back(text);
-    sh->sh_name = store_section_name(".text");
+    sh->sh_name = store_section_name(section_name);
     std::cout << "TEXT: Section Header Idx: " << section_headers.size() << std::endl;
+    section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
 }
 
@@ -167,6 +172,7 @@ void ELF32::init_section_headers(){
 
 void ELF32::init_data_section(){
     Section* data = new Section();
+    std::string section_name = ".data";
 
     Elf32_Shdr* sh = new Elf32_Shdr();
     sh->sh_type = SHT_PROGBITS;
@@ -175,9 +181,10 @@ void ELF32::init_data_section(){
 
     sections.push_back(data);      //is this working?
 
-    sh->sh_name = store_section_name(".data");
+    sh->sh_name = store_section_name(section_name);
     std::cout << "data_sh " << sh->sh_name << std::endl;
     std::cout << "DATA: Section Header Idx: " << section_headers.size() << std::endl;
+    section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
 }
 
@@ -203,8 +210,10 @@ void ELF32::init_strtables(){
     sh_strtab->sh_name = store_section_name(".strtab");
 
     std::cout << "STRTAB: Section Header Idx: " << section_headers.size() << std::endl;
+    section_to_idx[".shstrtab"] = section_headers.size();
     section_headers.push_back(sh_strtab);
     std::cout << "SHSTRTAB: Section Header Idx: " << section_headers.size() << std::endl;
+    section_to_idx[".strtab"] = section_headers.size();
     section_headers.push_back(sh_shstrtab);
 }
 
@@ -222,66 +231,51 @@ size_t ELF32::store_regular_string(std::string str){
     return offset; //index at which this string is stored
 }
 
-size_t ELF32::store_label(std::string the_label, bool is_global){
+size_t ELF32::init_label(std::string the_label, bool is_global, std::string section_name){
     size_t idx_strtab = store_regular_string(the_label); //FIXME: is it a regular string?
 
     Elf32_Sym sym = {};
     sym.st_name = idx_strtab;
     sym.st_info = ELF32_ST_BIND(is_global ? STB_GLOBAL : STB_LOCAL);
-    sym.st_shndx = 4;  //FIXME: for now, it's in relation to .text
-    //update the map   //TODO: add an API
-    labels[the_label] = sec_text->last_index(); //idx into text
+    // find what st_shndx this section_name string belongs to?
+    if (section_to_idx.count(section_name) > 0){
+       sym.st_shndx = section_to_idx[section_name];
+    } // TODO: should we do an else in case it fails?
+
+    // check if there is any forward references to this label 
+    if (unresolved_labels.count(the_label) > 0){
+       unresolved_labels.erase(the_label); // remove it
+    }
+
+    resolved_labels[the_label] = sec_text->last_index(); //FIXME: it should be the last index from the section we found
 
     symtab->header->sh_size += sizeof(Elf32_Sym); //update size
     symtab->push_back(sym);
     return idx_strtab;
 }
 
-//TODO: figure out if it's necessary to return anything?
-//TODO: consider where does this belong the best in terms of funcitonality
-//TODO: address resolution is a core component of the assembler and not the backend
-int32_t ELF32::resolve_label(std::string label, std::string current_section, int inst_type, bool is_local)
-{
-    if (labels.count(label) == 0)
-    {
-        UnresolvedInst32 inst;
-        inst.is_resolved = false;
-        inst.offset = UNRESOLVED_ADDR;
-        inst.is_local = is_local;
-        inst.inst_type = inst_type;
-        unresolved_instructions.push_back(inst); 
-
-        labels[label] = inst.offset;
-        return inst.offset;
-    }
-
-    return labels[label];
-}
-
 size_t ELF32::resolve_label(std::string label){
     //TODO: figure out how to differentiate between the data (string) and code
     //TODO: labels
     std::cout << "====Existing Labels=====" << std::endl;
-    for (auto &pair : labels){
+    for (auto &pair : resolved_labels){
         std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
     }
     std::cout << "========================" << std::endl;
     //if the label already exists, return the offset
-    //if not put it in relocation entries?
-    if (labels.count(label) == 0){
-        forward_decls.push_back(
-            std::make_pair(sec_text->last_index(), label)
-        ); //location in .text, label
-        labels[label] = UNRESOLVED_ADDR;
-        UnresolvedInst32 inst;
-        inst.is_resolved = false;
-        inst.offset = 0x0;
-        inst.is_local = false; //need a param?
-        inst.inst_type = 1;    //need an enum, need a param
-        unresolved_instructions.push_back(inst); 
-    }
+    if (resolved_labels.count(label) > 0){
+        std::cout << "found a resolved addr: " << std::hex << resolved_labels[label] << std::endl;
+        return resolved_labels[label]; // returns the address
 
-    return labels[label]; // [] operator create a new key w default value
+    }
+    //does not exist
+    forward_decls.push_back(
+        std::make_pair(sec_text->last_index(), label)
+    ); //location in .text, label
+
+    unresolved_labels[label] = UNRESOLVED_ADDR;
+
+    return UNRESOLVED_ADDR;
 }
 
 void ELF32::_resolve_unresolved_instructions()
@@ -290,31 +284,6 @@ void ELF32::_resolve_unresolved_instructions()
     for (size_t i=0; i <unresolved_instructions.size(); i++)
     {
         std::cout << "offset: " << unresolved_instructions[i].offset << std::endl;
-    }
-}
-
-void ELF32::resolve_forward_decls(){
-    // TODO: we should probably create a specific struct so the
-    // TODO: context could be saved and updated later on. If it's
-    // TODO: PC-relative or absolute or whatever else.
-    for (size_t i=0; i < forward_decls.size(); i++){
-        std::cout << "addr: " <<forward_decls[i].first << ", "
-                  << "labl: " <<forward_decls[i].second << std::endl;
-        // deserialize the instruction at the addr
-        int text_idx = forward_decls[i].first;
-        std::cout << "original inst: " << std::hex << sec_text->data[text_idx] << std::endl;
-        uint32_t resolved_addr = labels[forward_decls[i].second];
-        // unpack it into the type that we recorded
-        btype32_t temp = btype32_t::deserialize(sec_text->data[text_idx]); 
-        // update fields
-        // TODO: is it always b-type? NO
-        uint32_t updated_inst = emit_b_type_instruction(
-            resolved_addr, temp.rs1, temp.rs2, temp.funct3, temp.opcode
-        );
-        // serialize
-        sec_text->data[text_idx] = updated_inst;
-        // place it back where it was
-        std::cout << "updated inst: " << std::hex << sec_text->data[text_idx] << std::endl;
     }
 }
 

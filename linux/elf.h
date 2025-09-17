@@ -103,20 +103,12 @@ class ELF32
         size_t sections_count() const;
         size_t section_headers_count() const;
         size_t section_content_size(Section& s) const;
-        size_t store_label(std::string label, bool is_global);
+        size_t init_label(std::string label, bool is_global, std::string sectio_name);
         size_t store_regular_string(std::string str);
         size_t store_section_name(std::string);
         size_t resolve_label(std::string label);
         size_t get_cursor(std::string section);
 
-        int32_t resolve_label(
-            std::string label, 
-            std::string section, 
-            int inst_type, 
-            bool is_local
-        );
-
-        void resolve_forward_decls();
         void _resolve_unresolved_instructions();
         void add_to_text(uint32_t);
         void add_to_data();
@@ -161,6 +153,9 @@ class ELF32
         Symtab                    *symtab;         /* symbol table           */
 
         std::map<std::string, uint32_t> labels;    /* LUT for label and addr */
+        std::map<std::string, uint32_t> resolved_labels;  /* resolved ones   */
+        std::map<std::string, uint32_t> unresolved_labels;/* unresolved ones */
+        std::map<std::string, uint32_t> section_to_idx;   /* name to shidx   */ 
 
         // <offset in .text, and the label>
         std::vector<std::pair<uint32_t, std::string>> forward_decls;
