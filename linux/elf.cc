@@ -141,7 +141,6 @@ void ELF32::init_symtab(){
     first.st_shndx = SHN_UNDEF;
     symtab->push_back(first);
 
-    std::cout << "SYMTAB: Section Header Idx: " << section_headers.size() << std::endl;
     section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
 }
@@ -157,7 +156,6 @@ void ELF32::init_text_section(){
 
     sections.push_back(text);
     sh->sh_name = store_section_name(section_name);
-    std::cout << "TEXT: Section Header Idx: " << section_headers.size() << std::endl;
     section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
 }
@@ -166,7 +164,6 @@ void ELF32::init_section_headers(){
     Elf32_Shdr *first_entry = new Elf32_Shdr;
     std::memset(first_entry, 0, sizeof(Elf32_Shdr));
 
-    std::cout << "FIRST ENTRY: Section Header Idx: " << section_headers.size() << std::endl;
     section_headers.push_back(first_entry);
 }
 
@@ -182,8 +179,6 @@ void ELF32::init_data_section(){
     sections.push_back(data);      //is this working?
 
     sh->sh_name = store_section_name(section_name);
-    std::cout << "data_sh " << sh->sh_name << std::endl;
-    std::cout << "DATA: Section Header Idx: " << section_headers.size() << std::endl;
     section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
 }
@@ -209,10 +204,8 @@ void ELF32::init_strtables(){
     sh_shstrtab->sh_name = store_section_name(".shstrtab");
     sh_strtab->sh_name = store_section_name(".strtab");
 
-    std::cout << "STRTAB: Section Header Idx: " << section_headers.size() << std::endl;
     section_to_idx[".shstrtab"] = section_headers.size();
     section_headers.push_back(sh_strtab);
-    std::cout << "SHSTRTAB: Section Header Idx: " << section_headers.size() << std::endl;
     section_to_idx[".strtab"] = section_headers.size();
     section_headers.push_back(sh_shstrtab);
 }
@@ -232,6 +225,7 @@ size_t ELF32::store_regular_string(std::string str){
 }
 
 size_t ELF32::init_label(std::string the_label, bool is_global, std::string section_name){
+    std::cout << "init_label: " << the_label << ", section: " << section_name << std::endl;
     size_t idx_strtab = store_regular_string(the_label); //FIXME: is it a regular string?
 
     Elf32_Sym sym = {};
@@ -254,43 +248,51 @@ size_t ELF32::init_label(std::string the_label, bool is_global, std::string sect
     return idx_strtab;
 }
 
-size_t ELF32::resolve_label(std::string label){
-    //TODO: figure out how to differentiate between the data (string) and code
-    //TODO: labels
+int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
+    //TODO: figure out how to differentiate between the data (string) and code labels
     std::cout << "====Existing Labels=====" << std::endl;
     for (auto &pair : resolved_labels){
         std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
     }
     std::cout << "========================" << std::endl;
     //if the label already exists, return the offset
+    std::cout << "resolve_label(" << label << ")" << std::endl;
     if (resolved_labels.count(label) > 0){
-        std::cout << "found a resolved addr: " << std::hex << resolved_labels[label] << std::endl;
-        return resolved_labels[label]; // returns the address
-
+        std::cout << "found a resolved label: " << resolved_labels[label] << std::endl;
+        offset = resolved_labels[label];
+        return 0;
     }
-    //does not exist
-    forward_decls.push_back(
-        std::make_pair(sec_text->last_index(), label)
-    ); //location in .text, label
 
     unresolved_labels[label] = UNRESOLVED_ADDR;
+    offset = 0x0;
 
-    return UNRESOLVED_ADDR;
+    return -1;
+}
+
+ void ELF32::add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type){
+    UnresolvedInst32 i;
+    i.insn_number = insn_number;
+    i.insn_type = insn_type;
+	unresolved_instructions.push_back(i);
 }
 
 void ELF32::_resolve_unresolved_instructions()
 {
-    std::cout << "new function resolve_unresolved_instr" << std::endl;
-    for (size_t i=0; i <unresolved_instructions.size(); i++)
-    {
-        std::cout << "offset: " << unresolved_instructions[i].offset << std::endl;
+    std::cout << "_resolve_unresolved_instr" << std::endl;
+	std::cout << "resolved_labels: " << std::endl;
+    for (auto &pair : resolved_labels){
+        std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
+    }
+ 
+    for (auto &entry : unresolved_instructions){
+        std::cout << "Type: " << entry.insn_type << ", Number: " << entry.insn_number << std::endl;
     }
 }
 
-size_t ELF32::get_cursor(std::string section){
+size_t ELF32::get_next_insn_number(std::string section){
     // TODO: reduce hardcoding
     if (section == ".text"){
-        return sec_text->data.size() * sizeof(uint32_t);
+        return sec_text->last_index();
     }
 
     return 0;
@@ -413,11 +415,6 @@ void ELF32::serialize(std::ostream& os){
     os.seekp(0, std::ios_base::beg);
     os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
 }
-
-// Make sure all the stuff is in place
-// TODO Entry point - does an assembler make the decision
-// to set the entry point, such as _main? Generally, it
-// is the beginning of the text section
 
 void write_elf(ELF32& elf, std::string filename) {
     std::ostringstream elf_stream(std::ios::binary);

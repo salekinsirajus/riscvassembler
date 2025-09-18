@@ -55,8 +55,8 @@ public:
 
     // TODO: consider if the name is okay since it's overload of a term
     void push_back(Elf32_Sym& sym);
-    size_t get_size() const;
     void serialize(std::ostream& os);
+    size_t get_size() const;
 
     Elf32_Shdr* header;
 
@@ -86,12 +86,8 @@ typedef struct Section {
 
 typedef struct UnresolvedInst32
 {
-    bool      is_resolved;
-    uint32_t         inst;
-    int32_t        offset;
-    bool         is_local;
-    int8_t      inst_type;
-    int8_t       sh_index; // index into section header vector
+    uint32_t          insn_number;
+    RISCV32_INST_TYPE insn_type;
 } UnresolvedInst32;
 
 class ELF32
@@ -106,10 +102,11 @@ class ELF32
         size_t init_label(std::string label, bool is_global, std::string sectio_name);
         size_t store_regular_string(std::string str);
         size_t store_section_name(std::string);
-        size_t resolve_label(std::string label);
-        size_t get_cursor(std::string section);
+        int32_t resolve_label(std::string label, uint32_t &offset);
+        size_t get_next_insn_number(std::string section);
 
         void _resolve_unresolved_instructions();
+        void add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type);
         void add_to_text(uint32_t);
         void add_to_data();
         void add_to_symtab(Elf32_Sym& symbol);
@@ -152,7 +149,6 @@ class ELF32
         StringTable               *shstrtab;       /* section header strtab  */
         Symtab                    *symtab;         /* symbol table           */
 
-        std::map<std::string, uint32_t> labels;    /* LUT for label and addr */
         std::map<std::string, uint32_t> resolved_labels;  /* resolved ones   */
         std::map<std::string, uint32_t> unresolved_labels;/* unresolved ones */
         std::map<std::string, uint32_t> section_to_idx;   /* name to shidx   */ 

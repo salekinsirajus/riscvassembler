@@ -23,12 +23,11 @@
     itype32_t    itype_instr;
     uint32_t     temp_inst;
 
-    size_t            offset;
+    uint32_t offset;
     std::string   temp_value;
     std::string currentSection;
     std::string currentLabel;
-
-    std::vector<uint32_t> stk; //unused
+    int32_t op_status;
 %}
 
 %union {
@@ -181,11 +180,15 @@ instruction:
     | opcode register COMMA register COMMA LABEL
     {
         std::cout << "opcode x1, x2, label" << std::endl;
-        offset = newElfContent.resolve_label($6);
-        //offset = newElfContent.resolve_label( $6, currentSection, B_TYPE, true);
-        // TODO: check if lable resolution is successful or not
-        // TODO: then either move or store it temporarily?
-        // TODO: perhaps bring out the logic here?
+        offset = 0;
+        op_status = newElfContent.resolve_label($6, offset);
+        if (op_status == -1){
+            std::cout << "no valid address found: " << offset << std::endl;
+            newElfContent.add_to_unresolved_insns(
+                newElfContent.get_next_insn_number(currentSection), B_TYPE
+            );
+        }
+        std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
         temp_inst = emit_b_type_instruction(
             offset, $2, $4, ($1).funct3, ($1).op
         );
@@ -223,10 +226,18 @@ psuedo_instruction:
     | JUMP LABEL
     {
         // alais for risc-v 32base int ISA: jal x0, label
-        std::cout << "j label" << std::endl;
-        offset = newElfContent.resolve_label($2); 
-        std::cout << "resolved label to: " << offset << std::endl;
+        std::cout << "j label: " << $2 << std::endl;
+        offset = 0;
+        op_status = newElfContent.resolve_label($2, offset); 
+        if (op_status == -1){
+            std::cout << "no valid address found: " << offset << std::endl;
+            newElfContent.add_to_unresolved_insns(
+                newElfContent.get_next_insn_number(currentSection), U_TYPE
+            );
+        }
+        std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
         temp_inst = emit_u_type_instruction(offset, 0 /*rd=x0*/, 0x6f); 
+
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst)); 
         //TODO: remove hardcoded opcode and use an enum instead
