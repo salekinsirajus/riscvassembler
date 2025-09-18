@@ -24,10 +24,11 @@ the content.
 ## WIP: Reference Resolution
 _This portion is for scratch notes as I am working through
 a feature or a component_
-
-- encode unconditional jump properly
-- make sure the immediates are encoded properly: e.g. imm[31:12]
-means encode the bits 12 to 31.
+ 
+- We are able to go back to unresolved instructions
+- What we don't know is which local label did we need resolutions to
+- We could store a unique hash from the label during add_to_unresolved_inst
+- Then go back and lookup the value of the hash. Initialize all with -1
 
 ## Features
 aka the work in progress
