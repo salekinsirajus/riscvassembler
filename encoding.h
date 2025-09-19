@@ -82,7 +82,7 @@ typedef struct utype32_t{
  
         i.opcode = val & 0x7F; 
         i.rd     = (val >> 7) & 0x1F;
-        i.imm    = (val >> 12) & 0xFFFFFF;
+        i.imm    = (val >> 12) & 0xFFFFF;
 
         return i;
     }
