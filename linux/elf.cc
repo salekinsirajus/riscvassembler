@@ -241,7 +241,8 @@ size_t ELF32::init_label(std::string the_label, bool is_global, std::string sect
        unresolved_labels.erase(the_label); // remove it
     }
 
-    resolved_labels[the_label] = sec_text->last_index(); //FIXME: it should be the last index from the section we found
+    resolved_labels[the_label] = sec_text->last_index(); //FIXME: remove section hardcoding
+    label_to_addr[hasher(the_label)] = sec_text->last_index();
 
     symtab->header->sh_size += sizeof(Elf32_Sym); //update size
     symtab->push_back(sym);
@@ -280,49 +281,54 @@ int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
 
 void ELF32::_resolve_unresolved_instructions()
 {
-    std::cout << "_resolve_unresolved_instr" << std::endl;
+    std::cout << "_resolve_unresolved_instr()" << std::endl;
 	std::cout << "resolved_labels: " << std::endl;
     for (auto &pair : resolved_labels){
         std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
     }
  
     uint32_t offset = 0;
+    btype32_t b; 
+    utype32_t u; 
+
+   //TODO: if it's still not resolved, it's most likely would be resolved by the linker
+   //TODO: make appropriate structure for the object file
     for (auto &entry : unresolved_instructions){
         std::cout << "Type: " << entry.insn_type 
                   << ", Number: " << entry.insn_number 
                   << ", hash: " << entry.hash << std::endl;
-        uint32_t insn = static_cast<uint32_t>(sec_text->get_entry(entry.insn_number));
+        uint32_t insn = sec_text->get_entry(entry.insn_number);
         uint32_t resolved_addr;
         std::cout << "instruction before: " << std::hex << insn << std::endl;
         switch (entry.insn_type){
             case B_TYPE:
-               btype32_t b;
-               b.deserialize(insn);
-               //TODO: if it's still not resolved, it's most likely would be resolved by the linker
-               //TODO: make appropriate structure for the object file
+               b = btype32_t::deserialize(insn);
                resolved_addr = label_to_addr[entry.hash];
+               std::cout << "resolved addr: " << std::hex << resolved_addr << std::endl;
                insn = emit_b_type_instruction(
                    resolved_addr, b.rs1, b.rs2, b.funct3, b.opcode
                );
+               std::cout << "instruction after: " << std::hex << insn << std::endl;
                sec_text->update_entry(entry.insn_number, insn);
-            //case R_TYPE:
-            //case I_TYPE:
-            //case S_TYPE:
+               std::cout << "done" << std::endl;
+               break;
             case U_TYPE:
-                utype32_t u;
-                u.deserialize(insn);
-                resolved_addr = label_to_addr[entry.hash];
-                insn = emit_u_type_instruction(resolved_addr, u.rd, u.opcode);
-                sec_text->update_entry(entry.insn_number, insn);
+               u = utype32_t::deserialize(insn);
+               resolved_addr = label_to_addr[entry.hash];
+               std::cout << "resolved addr: " << std::hex << resolved_addr << std::endl;
+               insn = emit_u_type_instruction(resolved_addr, u.rd, u.opcode);
+               std::cout << "instruction after: " << std::hex << insn << std::endl;
+               sec_text->update_entry(entry.insn_number, insn);
+               std::cout << "done" << std::endl;
+               break;
         }
-        std::cout << "instruction after: " << std::hex << insn << std::endl;
     }
 }
 
 size_t ELF32::get_next_insn_number(std::string section){
     // TODO: reduce hardcoding
     if (section == ".text"){
-        return sec_text->last_index();
+        return sec_text->next_index();
     }
 
     return 0;

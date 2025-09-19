@@ -77,6 +77,10 @@ typedef struct Section {
     int last_index() const {
         return data.size() - 1;
     }
+ 
+    uint32_t next_index() const {
+        return data.size();
+    }
 
     uint32_t get_entry(size_t idx){
         if (idx >= data.size() || idx < 0) return 0xFFFFFFFF;
