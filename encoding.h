@@ -76,6 +76,16 @@ typedef struct utype32_t{
     operator uint32_t() const {
         return (imm << 12)|(rd <<  7)| opcode;
     }
+ 
+    static utype32_t deserialize(uint32_t val){
+        utype32_t i;
+ 
+        i.opcode = val & 0x7F; 
+        i.rd     = (val >> 7) & 0x1F;
+        i.imm    = (val >> 12) & 0xFFFFFF;
+
+        return i;
+    }
 
 } utype32_t;
 uint32_t emit_u_type_instruction(unsigned imm, unsigned rd, unsigned opcode);

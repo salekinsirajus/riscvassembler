@@ -263,16 +263,18 @@ int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
         return 0;
     }
 
-    unresolved_labels[label] = UNRESOLVED_ADDR;
-    offset = 0x0;
+    unresolved_labels[label] = hasher(label);
+    offset = unresolved_labels[label];
 
     return -1;
 }
 
- void ELF32::add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type){
+ void ELF32::add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash){
     UnresolvedInst32 i;
     i.insn_number = insn_number;
     i.insn_type = insn_type;
+    i.hash = hash;
+
 	unresolved_instructions.push_back(i);
 }
 
@@ -284,8 +286,36 @@ void ELF32::_resolve_unresolved_instructions()
         std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
     }
  
+    uint32_t offset = 0;
     for (auto &entry : unresolved_instructions){
-        std::cout << "Type: " << entry.insn_type << ", Number: " << entry.insn_number << std::endl;
+        std::cout << "Type: " << entry.insn_type 
+                  << ", Number: " << entry.insn_number 
+                  << ", hash: " << entry.hash << std::endl;
+        uint32_t insn = static_cast<uint32_t>(sec_text->get_entry(entry.insn_number));
+        uint32_t resolved_addr;
+        std::cout << "instruction before: " << std::hex << insn << std::endl;
+        switch (entry.insn_type){
+            case B_TYPE:
+               btype32_t b;
+               b.deserialize(insn);
+               //TODO: if it's still not resolved, it's most likely would be resolved by the linker
+               //TODO: make appropriate structure for the object file
+               resolved_addr = label_to_addr[entry.hash];
+               insn = emit_b_type_instruction(
+                   resolved_addr, b.rs1, b.rs2, b.funct3, b.opcode
+               );
+               sec_text->update_entry(entry.insn_number, insn);
+            //case R_TYPE:
+            //case I_TYPE:
+            //case S_TYPE:
+            case U_TYPE:
+                utype32_t u;
+                u.deserialize(insn);
+                resolved_addr = label_to_addr[entry.hash];
+                insn = emit_u_type_instruction(resolved_addr, u.rd, u.opcode);
+                sec_text->update_entry(entry.insn_number, insn);
+        }
+        std::cout << "instruction after: " << std::hex << insn << std::endl;
     }
 }
 

@@ -78,17 +78,46 @@ typedef struct Section {
         return data.size() - 1;
     }
 
+    uint32_t get_entry(size_t idx){
+        if (idx >= data.size() || idx < 0) return 0xFFFFFFFF;
+
+        return data[idx];
+    }
+
+    int32_t update_entry(size_t idx, uint32_t val){
+        if (idx >= data.size() || idx < 0) return -1;
+
+        data[idx] = val;
+        return 0;
+    }
+
 } Section;
 
 // what we need for the assembler and what we dont need
 // Relocatable object files do not need a program header table. (solaris)
 // A relocateble object must have a section header table
 
+inline uint32_t hasher(std::string& input) {
+    uint32_t FNV_prime = 16777619u;
+    uint32_t offset_basis = 2166136261u;
+    uint32_t hash = offset_basis;
+
+    for (char c : input) {
+        hash ^= static_cast<uint8_t>(c);
+        hash *= FNV_prime;
+    }
+
+    return hash;
+}
+
+
 typedef struct UnresolvedInst32
 {
     uint32_t          insn_number;
     RISCV32_INST_TYPE insn_type;
+    uint32_t          hash;
 } UnresolvedInst32;
+
 
 class ELF32
 {
@@ -106,7 +135,7 @@ class ELF32
         size_t get_next_insn_number(std::string section);
 
         void _resolve_unresolved_instructions();
-        void add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type);
+        void add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash);
         void add_to_text(uint32_t);
         void add_to_data();
         void add_to_symtab(Elf32_Sym& symbol);
@@ -152,6 +181,8 @@ class ELF32
         std::map<std::string, uint32_t> resolved_labels;  /* resolved ones   */
         std::map<std::string, uint32_t> unresolved_labels;/* unresolved ones */
         std::map<std::string, uint32_t> section_to_idx;   /* name to shidx   */ 
+
+        std::map<uint32_t, uint32_t> label_to_addr;    /* hash to address    */
 
         // <offset in .text, and the label>
         std::vector<std::pair<uint32_t, std::string>> forward_decls;
