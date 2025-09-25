@@ -272,7 +272,7 @@ int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
 
 void ELF32::add_to_unresolved_insns(int32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash, uint32_t pc_insn_number){
     UnresolvedInst32 i;
-    i.insn_number = insn_number;
+    i.insn_number = insn_number; // what is the use of this?
     i.pc_insn_number = pc_insn_number;
     i.insn_type = insn_type;
     i.hash = hash;
@@ -295,9 +295,10 @@ void ELF32::_resolve_unresolved_instructions()
    //TODO: if it's still not resolved, it's most likely would be resolved by the linker
    //TODO: make appropriate structure for the object file
     for (auto &entry : unresolved_instructions){
-        std::cout << "Type: " << entry.insn_type 
+        std::cout << "Type: "     << entry.insn_type 
                   << ", Number: " << entry.insn_number 
-                  << ", hash: " << entry.hash << std::endl;
+                  << ", PC: "     << entry.pc_insn_number 
+                  << ", hash: "   << entry.hash << std::endl;
         uint32_t insn = sec_text->get_entry(entry.insn_number);
         uint32_t resolved_insn_number;
         int32_t  resolved_effective_offset;
@@ -306,9 +307,12 @@ void ELF32::_resolve_unresolved_instructions()
             case B_TYPE:
                b = btype32_t::deserialize(insn);
                resolved_insn_number = label_to_addr[entry.hash];
+               std::cout << "resolved label to: " << resolved_insn_number << std::endl;
                // TODO: figure out how this type of instruction offsets are encoded
+               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number) / 2) * INSTRUCTION_WIDTH;
+               std::cout << "resolved_effective_offset: " << resolved_effective_offset << std::endl;
                insn = emit_b_type_instruction(
-                   resolved_insn_number, b.rs1, b.rs2, b.funct3, b.opcode
+                   resolved_effective_offset, b.rs1, b.rs2, b.funct3, b.opcode
                );
                std::cout << "instruction after: " << std::hex << insn << std::endl;
                sec_text->update_entry(entry.insn_number, insn);
@@ -317,8 +321,9 @@ void ELF32::_resolve_unresolved_instructions()
             case U_TYPE:
                u = utype32_t::deserialize(insn);
                resolved_insn_number = label_to_addr[entry.hash];
+               std::cout << "resolved label to: " << resolved_insn_number << std::endl;
                resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number) / 2) * INSTRUCTION_WIDTH;
-               std::cout << "resolved addr: " << std::hex << resolved_effective_offset << std::endl;
+               std::cout << "resolved_effective_offset: " << resolved_effective_offset << std::endl;
                insn = emit_u_type_instruction(resolved_effective_offset, u.rd, u.opcode);
                std::cout << "instruction after: " << std::hex << insn << std::endl;
                sec_text->update_entry(entry.insn_number, insn);
