@@ -67,7 +67,6 @@
 %token <sval> STRING
 %token <sval> LABEL
 %type <ival>  register;
-%type <ival>  imm;
 %type <opc_t> opcode;
 
 %%
@@ -163,10 +162,10 @@ instruction:
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
-    | opcode register COMMA register COMMA imm
+    | opcode register COMMA register COMMA IMM
     {
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        std::cout << "opcode rx, ry, imm" << std::endl;
+        std::cout << "opcode rx, ry, imm" << ": (" << "op" << " " << $2 << " " << $4 << " " << $6 << ")" << std::endl;
         temp_inst = emit_i_type_instruction($2, $4, $6, 0, ($1).op);
         newElfContent.add_to_text(temp_inst); //TODO: add API
 
@@ -191,8 +190,9 @@ instruction:
         }
         std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
         temp_inst = emit_b_type_instruction(
-            offset, $2, $4, ($1).funct3, ($1).op
+            0x0, $2, $4, ($1).funct3, ($1).op
         );
+        std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
         newElfContent.add_to_text(temp_inst);
     }
     | opcode
@@ -238,8 +238,9 @@ psuedo_instruction:
             );
         }
         std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
-        temp_inst = emit_u_type_instruction(offset, 0 /*rd=x0*/, 0x6f); 
+        temp_inst = emit_u_type_instruction(0x0, 0 /*rd=x0*/, 0x6f); 
 
+        std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst)); 
         //TODO: remove hardcoded opcode and use an enum instead
@@ -279,10 +280,6 @@ register:
         $$ = $1;
     }
     ;
-imm:
-    IMM {
-        $$ = $1;
-    }
 
 %%
 

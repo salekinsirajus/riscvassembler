@@ -73,13 +73,13 @@
 
 [1-9]?[0-9]      {
                     //TODO:  need to differentiate bw imm vs offset
-                    yylval.ival = atoi(&yytext[1]);
+                    yylval.ival = atoi(yytext);
                     return IMM;
                  }
 zero             { yylval.ival = 0; return REG; }
-[arx][0-9]       { yylval.ival = atoi(&yytext[1]); return REG; }
-t0               { yylval.ival = 5; return REG; /* t0 = x5 */  }
-t1               { yylval.ival = 6; return REG; /* t1 = x6 */  }
+[a][0-7]         { yylval.ival = 10 + atoi(&yytext[1]); return REG; }
+[x][0-9]         { yylval.ival = atoi(&yytext[1]); return REG; }
+[t][0-2]         { yylval.ival = 5 + atoi(&yytext[1]); return REG;}
 
 \."section"      { return SECTION; }
 \."text"         { return D_TEXT; }
