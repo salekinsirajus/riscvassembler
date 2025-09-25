@@ -12,7 +12,7 @@
 
 #include <cstdint>
 
-#define INSTRUCTION_WIDTH 32
+#define INSTRUCTION_WIDTH sizeof(uint32_t)
 
 //R-type
 typedef struct rtype32_t {
