@@ -185,7 +185,8 @@ instruction:
         if (op_status == -1){
             std::cout << "no valid address found: " << offset << std::endl;
             newElfContent.add_to_unresolved_insns(
-                newElfContent.get_next_insn_number(currentSection), B_TYPE, offset
+                newElfContent.get_next_insn_number(currentSection), B_TYPE, offset,
+                newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
         std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
@@ -232,7 +233,8 @@ psuedo_instruction:
         if (op_status == -1){
             std::cout << "no valid address found: " << offset << std::endl;
             newElfContent.add_to_unresolved_insns(
-                newElfContent.get_next_insn_number(currentSection), U_TYPE, offset
+                newElfContent.get_next_insn_number(currentSection), U_TYPE, offset,
+                newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
         std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;

@@ -117,7 +117,8 @@ inline uint32_t hasher(std::string& input) {
 
 typedef struct UnresolvedInst32
 {
-    uint32_t          insn_number;
+    uint32_t          insn_number;  /*FIXME: should this be signed? */
+    uint32_t          pc_insn_number;
     RISCV32_INST_TYPE insn_type;
     uint32_t          hash;
 } UnresolvedInst32;
@@ -139,7 +140,7 @@ class ELF32
         size_t get_next_insn_number(std::string section);
 
         void _resolve_unresolved_instructions();
-        void add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash);
+        void add_to_unresolved_insns(int32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash, uint32_t pc_insn_number);
         void add_to_text(uint32_t);
         void add_to_data();
         void add_to_symtab(Elf32_Sym& symbol);

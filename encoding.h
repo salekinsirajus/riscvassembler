@@ -12,6 +12,8 @@
 
 #include <cstdint>
 
+#define INSTRUCTION_WIDTH 32
+
 //R-type
 typedef struct rtype32_t {
     unsigned opcode :7;

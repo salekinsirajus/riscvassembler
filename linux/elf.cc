@@ -270,9 +270,10 @@ int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
     return -1;
 }
 
- void ELF32::add_to_unresolved_insns(uint32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash){
+void ELF32::add_to_unresolved_insns(int32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash, uint32_t pc_insn_number){
     UnresolvedInst32 i;
     i.insn_number = insn_number;
+    i.pc_insn_number = pc_insn_number;
     i.insn_type = insn_type;
     i.hash = hash;
 
@@ -298,15 +299,16 @@ void ELF32::_resolve_unresolved_instructions()
                   << ", Number: " << entry.insn_number 
                   << ", hash: " << entry.hash << std::endl;
         uint32_t insn = sec_text->get_entry(entry.insn_number);
-        uint32_t resolved_addr;
+        uint32_t resolved_insn_number;
+        int32_t  resolved_effective_offset;
         std::cout << "instruction before: " << std::hex << insn << std::endl;
         switch (entry.insn_type){
             case B_TYPE:
                b = btype32_t::deserialize(insn);
-               resolved_addr = label_to_addr[entry.hash];
-               std::cout << "resolved addr: " << std::hex << resolved_addr << std::endl;
+               resolved_insn_number = label_to_addr[entry.hash];
+               // TODO: figure out how this type of instruction offsets are encoded
                insn = emit_b_type_instruction(
-                   resolved_addr, b.rs1, b.rs2, b.funct3, b.opcode
+                   resolved_insn_number, b.rs1, b.rs2, b.funct3, b.opcode
                );
                std::cout << "instruction after: " << std::hex << insn << std::endl;
                sec_text->update_entry(entry.insn_number, insn);
@@ -314,9 +316,10 @@ void ELF32::_resolve_unresolved_instructions()
                break;
             case U_TYPE:
                u = utype32_t::deserialize(insn);
-               resolved_addr = label_to_addr[entry.hash];
-               std::cout << "resolved addr: " << std::hex << resolved_addr << std::endl;
-               insn = emit_u_type_instruction(resolved_addr, u.rd, u.opcode);
+               resolved_insn_number = label_to_addr[entry.hash];
+               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number) / 2) * INSTRUCTION_WIDTH;
+               std::cout << "resolved addr: " << std::hex << resolved_effective_offset << std::endl;
+               insn = emit_u_type_instruction(resolved_effective_offset, u.rd, u.opcode);
                std::cout << "instruction after: " << std::hex << insn << std::endl;
                sec_text->update_entry(entry.insn_number, insn);
                std::cout << "done" << std::endl;
