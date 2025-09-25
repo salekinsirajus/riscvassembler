@@ -309,7 +309,7 @@ void ELF32::_resolve_unresolved_instructions()
                resolved_insn_number = label_to_addr[entry.hash];
                std::cout << "resolved label to: " << resolved_insn_number << std::endl;
                // TODO: figure out how this type of instruction offsets are encoded
-               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number) / 2) * INSTRUCTION_WIDTH;
+               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number)) * INSTRUCTION_WIDTH / 2;
                std::cout << "resolved_effective_offset: " << resolved_effective_offset << std::endl;
                insn = emit_b_type_instruction(
                    resolved_effective_offset, b.rs1, b.rs2, b.funct3, b.opcode
@@ -322,7 +322,7 @@ void ELF32::_resolve_unresolved_instructions()
                u = utype32_t::deserialize(insn);
                resolved_insn_number = label_to_addr[entry.hash];
                std::cout << "resolved label to: " << resolved_insn_number << std::endl;
-               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number) / 2) * INSTRUCTION_WIDTH;
+               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number)) * INSTRUCTION_WIDTH / 2;
                std::cout << "resolved_effective_offset: " << resolved_effective_offset << std::endl;
                insn = emit_u_type_instruction(resolved_effective_offset, u.rd, u.opcode);
                std::cout << "instruction after: " << std::hex << insn << std::endl;
