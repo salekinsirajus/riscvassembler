@@ -174,7 +174,14 @@ instruction:
     }
     | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
-        std::cout << "opcode rx, $8(ry)" << std::endl;
+        std::cout << "opcode R" << $2 << " " << $4 << "(R" << $6 << ")" << std::endl;
+        // I think these are I-type instructions
+        // TODO: sign-extended and unsigned are handled appropriately
+        temp_inst = emit_i_type_instruction($2, $6, $4, ($1).funct3, ($1).op);
+        newElfContent.add_to_text(temp_inst);
+
+        ($1).valid = 0;
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | opcode register COMMA register COMMA LABEL
     {
@@ -218,11 +225,6 @@ psuedo_instruction:
         std::cout << "la t0 addr" << std::endl;
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
-    }
-    | LB REG COMMA LABEL
-    {
-        std::cout << "lb rx, label" << std::endl;
-        //TODO: differentiate between label and symbol
     }
     | JUMP LABEL
     {
@@ -272,6 +274,12 @@ opcode:
 
     | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; }
     | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; }
+
+    | LB    { $$ = {.op = 0x03, .funct3 = 0x0, .valid = 1}; }
+    | LH    { $$ = {.op = 0x03, .funct3 = 0x1, .valid = 1}; }
+    | LW    { $$ = {.op = 0x03, .funct3 = 0x2, .valid = 1}; }
+    | LBU   { $$ = {.op = 0x03, .funct3 = 0x4, .valid = 1}; }
+    | LHU   { $$ = {.op = 0x03, .funct3 = 0x5, .valid = 1}; }
     ;
 
 register:
