@@ -25,10 +25,8 @@ the content.
 _This portion is for scratch notes as I am working through
 a feature or a component_
  
-- We are able to go back to unresolved instructions
-- What we don't know is which local label did we need resolutions to
-- We could store a unique hash from the label during add_to_unresolved_inst
-- Then go back and lookup the value of the hash. Initialize all with -1
+- I dont know which way to go depending on where we are
+re: label's address resolution
 
 ## Features
 aka the work in progress
