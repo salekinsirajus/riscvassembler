@@ -314,6 +314,9 @@ void ELF32::_resolve_unresolved_instructions()
                // TODO: figure out how this type of instruction offsets are encoded
                resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number)) * INSTRUCTION_WIDTH / 2;
                std::cout << "resolved_effective_offset: " << resolved_effective_offset << std::endl;
+               // FIXME: check the emit_b.. function to see how the imm is being
+               // FIXME: encoded. We had issues with U_TYPE. Check if it's correct 
+               // FIXME: for other types.
                insn = emit_b_type_instruction(
                    resolved_effective_offset, b.rs1, b.rs2, b.funct3, b.opcode
                );
