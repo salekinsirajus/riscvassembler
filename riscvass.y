@@ -257,8 +257,8 @@ psuedo_instruction:
     {
         std::cout << "jalr x0, x1, x0 [ret]" << std::endl;
         temp_inst = emit_i_type_instruction(
-           0/*rd=x0*/, 1 /*rs1=x1*/, 0 /*imm*/, 0x0/*funct3*/, 0x67
-        );
+           0/*rd=x0*/, 0 /*rs1=x0*/, 1 /*imm*/, 0x0/*funct3*/, 0x67
+        ); // FIXME: the annotations of params are wrong
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
