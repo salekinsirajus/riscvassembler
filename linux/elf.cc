@@ -251,11 +251,11 @@ size_t ELF32::init_label(std::string the_label, bool is_global, std::string sect
 
 int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
     //TODO: figure out how to differentiate between the data (string) and code labels
-    std::cout << "====Existing Labels=====" << std::endl;
-    for (auto &pair : resolved_labels){
-        std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
-    }
-    std::cout << "========================" << std::endl;
+    //std::cout << "====Existing Labels=====" << std::endl;
+    //for (auto &pair : resolved_labels){
+        //std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
+    //}
+    //std::cout << "========================" << std::endl;
     //if the label already exists, return the offset
     std::cout << "resolve_label(" << label << ")" << std::endl;
     if (resolved_labels.count(label) > 0){
@@ -270,7 +270,10 @@ int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
     return -1;
 }
 
-void ELF32::add_to_unresolved_insns(int32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash, uint32_t pc_insn_number){
+void ELF32::add_to_unresolved_insns(
+    int32_t insn_number, RISCV32_INST_TYPE insn_type, 
+    uint32_t hash, uint32_t pc_insn_number
+){
     UnresolvedInst32 i;
     i.insn_number = insn_number; // what is the use of this?
     i.pc_insn_number = pc_insn_number;

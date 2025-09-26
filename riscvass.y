@@ -105,7 +105,7 @@ statement:
     }
     | directive
     {
-        std::cout << "directive" << std::endl;
+        std::cout << "directive (NYI)" << std::endl;
     }
     ;
 
@@ -155,7 +155,7 @@ instruction:
     {
         //R-format: opcode dest, rs1, rs2
         //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
-        std::cout << "opcode rx, ry, rz" << std::endl;
+        std::cout << "r" << $2 << ", r" << $4 << ", r" << $6 << std::endl;
         temp_inst = emit_r_type_instruction(0, $4, $6, 0, $2, ($1).op);
         newElfContent.add_to_text(temp_inst); //TODO: add API
 
@@ -165,7 +165,7 @@ instruction:
     | opcode register COMMA register COMMA IMM
     {
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        std::cout << "opcode rx, ry, imm" << ": (" << "op" << " " << $2 << " " << $4 << " " << $6 << ")" << std::endl;
+        std::cout << "r" << $2 << ", r" << $4 << ", " << $6 << std::endl;
         temp_inst = emit_i_type_instruction($2, $4, $6, 0, ($1).op);
         newElfContent.add_to_text(temp_inst); //TODO: add API
 
@@ -174,7 +174,7 @@ instruction:
     }
     | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
-        std::cout << "opcode R" << $2 << " " << $4 << "(R" << $6 << ")" << std::endl;
+        std::cout << "r" << $2 << " " << $4 << "(r" << $6 << ")" << std::endl;
         // I think these are I-type instructions
         // TODO: sign-extended and unsigned are handled appropriately
         temp_inst = emit_i_type_instruction($2, $6, $4, ($1).funct3, ($1).op);
@@ -185,7 +185,7 @@ instruction:
     }
     | opcode register COMMA register COMMA LABEL
     {
-        std::cout << "opcode x1, x2, label" << std::endl;
+        std::cout << "r"<< $2 << ", r" << $4 << ", " << $6 << std::endl;
         offset = 0;
         op_status = newElfContent.resolve_label($6, offset);
         if (op_status == -1){
@@ -195,7 +195,6 @@ instruction:
                 newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
-        std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
         temp_inst = emit_b_type_instruction(
             0x0, $2, $4, ($1).funct3, ($1).op
         );
@@ -229,7 +228,7 @@ psuedo_instruction:
     | JUMP LABEL
     {
         // alais for risc-v 32base int ISA: jal x0, label
-        std::cout << "j label: " << $2 << std::endl;
+        std::cout << "j " << $2 << std::endl;
         offset = 0;
         op_status = newElfContent.resolve_label($2, offset); 
         if (op_status == -1){
@@ -239,7 +238,6 @@ psuedo_instruction:
                 newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
-        std::cout << "op_status: " << op_status << ", resolved label to: " << offset << std::endl;
         temp_inst = emit_u_type_instruction(0x0, 0 /*rd=x0*/, 0x6f); 
 
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
@@ -249,37 +247,42 @@ psuedo_instruction:
     }
     | MOV REG COMMA REG
     {
-        std::cout << "mv rd, rs" << std::endl;
-        //addi rd, rs, x0
-        temp_inst = emit_i_type_instruction($2, $4, 0, 0x0/*funct3*/, 0x13/*addi*/);
+        std::cout << "mv r"<< $2 << ", r" << $4 << std::endl;
+        //TODO: make sure the MOV insturction is completely expanded
+        temp_inst = emit_i_type_instruction($2, $4, 0, 0x0, 0x13);
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | RET
     {
-        std::cout << "jalr x0, x1, x0" << std::endl;
+        std::cout << "jalr x0, x1, x0 [ret]" << std::endl;
+        temp_inst = emit_i_type_instruction(
+           0/*rd=x0*/, 1 /*rs1=x1*/, 0 /*imm*/, 0x0/*funct3*/, 0x67
+        );
+        newElfContent.add_to_text(temp_inst);
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     ;
 
 opcode:
-      ADDI  { $$ = {.op = 0x13, .funct3 = 0x0, .valid = 1}; }
-    | SLTI  { $$ = {.op = 0x13, .funct3 = 0x2, .valid = 1}; }
-    | SLTIU { $$ = {.op = 0x13, .funct3 = 0x3, .valid = 1}; }
-    | XORI  { $$ = {.op = 0x13, .funct3 = 0x4, .valid = 1}; }
-    | ORI   { $$ = {.op = 0x13, .funct3 = 0x5, .valid = 1}; }
-    | ANDI  { $$ = {.op = 0x13, .funct3 = 0x6, .valid = 1}; }
-    | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; }
+      ADDI  { $$ = {.op = 0x13, .funct3 = 0x0, .valid = 1}; std::cout << "addi "; }
+    | SLTI  { $$ = {.op = 0x13, .funct3 = 0x2, .valid = 1}; std::cout << "slti"; }
+    | SLTIU { $$ = {.op = 0x13, .funct3 = 0x3, .valid = 1}; std::cout << "sltiu "; }
+    | XORI  { $$ = {.op = 0x13, .funct3 = 0x4, .valid = 1}; std::cout << "xori "; }
+    | ORI   { $$ = {.op = 0x13, .funct3 = 0x5, .valid = 1}; std::cout << "ori "; }
+    | ANDI  { $$ = {.op = 0x13, .funct3 = 0x6, .valid = 1}; std::cout << "andi "; }
+    | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; std::cout << "ecall "; }
 
-    | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; }
+    | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; std::cout << "beq "; }
 
-    | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; }
-    | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; }
+    | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; std::cout << "add "; }
+    | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; std::cout << "sub "; }
 
-    | LB    { $$ = {.op = 0x03, .funct3 = 0x0, .valid = 1}; }
-    | LH    { $$ = {.op = 0x03, .funct3 = 0x1, .valid = 1}; }
-    | LW    { $$ = {.op = 0x03, .funct3 = 0x2, .valid = 1}; }
-    | LBU   { $$ = {.op = 0x03, .funct3 = 0x4, .valid = 1}; }
-    | LHU   { $$ = {.op = 0x03, .funct3 = 0x5, .valid = 1}; }
+    | LB    { $$ = {.op = 0x03, .funct3 = 0x0, .valid = 1}; std::cout << "lb "; }
+    | LH    { $$ = {.op = 0x03, .funct3 = 0x1, .valid = 1}; std::cout << "lh "; }
+    | LW    { $$ = {.op = 0x03, .funct3 = 0x2, .valid = 1}; std::cout << "lw "; }
+    | LBU   { $$ = {.op = 0x03, .funct3 = 0x4, .valid = 1}; std::cout << "lbu "; }
+    | LHU   { $$ = {.op = 0x03, .funct3 = 0x5, .valid = 1}; std::cout << "lhu "; }
     ;
 
 register:
