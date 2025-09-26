@@ -25,8 +25,10 @@ the content.
 _This portion is for scratch notes as I am working through
 a feature or a component_
  
-- I dont know which way to go depending on where we are
-re: label's address resolution
+- TODO: set expectation for every emit method for immediate
+values being passed. Are they raw offset or bit-shifted already?
+I am inclined towards raw offset
+
 
 ## Features
 aka the work in progress
