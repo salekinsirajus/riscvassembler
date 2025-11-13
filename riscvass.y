@@ -136,7 +136,7 @@ directive:
     | D_GLOBAL LABEL
     {
         std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
-        //newElfContent.update_label_visibility($2, true); //TODO: implemet API to modify visibility
+        //newElfContent.update_label_visibility($2, true);
     }
     | D_ASCII STRING
     {
@@ -227,7 +227,7 @@ psuedo_instruction:
     }
     | JUMP LABEL
     {
-        // alais for risc-v 32base int ISA: jal x0, label
+        // alias for risc-v 32base int ISA: jal x0, label
         std::cout << "j " << $2 << std::endl;
         offset = 0;
         op_status = newElfContent.resolve_label($2, offset); 

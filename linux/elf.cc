@@ -224,7 +224,11 @@ size_t ELF32::store_regular_string(std::string str){
     return offset; //index at which this string is stored
 }
 
-size_t ELF32::init_label(std::string the_label, bool is_global, std::string section_name){
+void ELF32::init_label(std::string the_label, bool is_global, std::string section_name){
+    //FIXME: review this later on, if the label already exists because of a directive, don't
+    //FIXME: no need to create it. check if this still holds true when things get complicated
+    if (label_exists(the_label)) { return; }
+
     std::cout << "init_label: " << the_label << ", section: " << section_name << std::endl;
     size_t idx_strtab = store_regular_string(the_label); //FIXME: is it a regular string?
 
@@ -246,7 +250,22 @@ size_t ELF32::init_label(std::string the_label, bool is_global, std::string sect
 
     symtab->header->sh_size += sizeof(Elf32_Sym); //update size
     symtab->push_back(sym);
-    return idx_strtab;
+    //return idx_strtab;
+}
+
+void ELF32::update_label_visibility(std::string label, bool is_global)
+{
+	if (label_exists(label))
+    {
+		std::cout << "(NYI) go find the label in symtab and update it's visibility" << std::endl;
+	} else
+    {
+        init_label(label, is_global, ".text"); //FIXME: remove hardcoded section_name  
+    }
+}
+
+bool ELF32::label_exists(std::string label){
+    return (resolved_labels.count(label) > 0);
 }
 
 int32_t ELF32::resolve_label(std::string label, uint32_t &offset){

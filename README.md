@@ -28,6 +28,9 @@ a feature or a component_
 - TODO: set expectation for every emit method for immediate
 values being passed. Are they raw offset or bit-shifted already?
 I am inclined towards raw offset
+- Make sure sign-extension etc works
+- Implement label/symbol visibility
+- Add unresolved symbols to rela.text 
 
 
 ## Features

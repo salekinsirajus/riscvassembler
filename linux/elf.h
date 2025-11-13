@@ -133,7 +133,9 @@ class ELF32
         size_t sections_count() const;
         size_t section_headers_count() const;
         size_t section_content_size(Section& s) const;
-        size_t init_label(std::string label, bool is_global, std::string sectio_name);
+        void   init_label(std::string label, bool is_global, std::string section_name);
+        bool   label_exists(std::string label);
+        void   update_label_visibility(std::string label, bool is_global);
         size_t store_regular_string(std::string str);
         size_t store_section_name(std::string);
         int32_t resolve_label(std::string label, uint32_t &offset);
