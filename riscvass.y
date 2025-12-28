@@ -3,6 +3,7 @@
     // for bison
     #include <stdio.h>
     #include <iostream>
+    #include "opcode.h"
     #include "encoding.h"
     #include "utils.h"
     #include "linux/elf.h"
@@ -238,7 +239,7 @@ psuedo_instruction:
                 newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
-        temp_inst = emit_u_type_instruction(0x0, 0 /*rd=x0*/, 0x6f); 
+        temp_inst = emit_u_type_instruction(0x0, 0 /*rd=x0*/, JALR_32); 
 
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
         newElfContent.add_to_text(temp_inst);
@@ -265,24 +266,24 @@ psuedo_instruction:
     ;
 
 opcode:
-      ADDI  { $$ = {.op = 0x13, .funct3 = 0x0, .valid = 1}; std::cout << "addi "; }
-    | SLTI  { $$ = {.op = 0x13, .funct3 = 0x2, .valid = 1}; std::cout << "slti"; }
-    | SLTIU { $$ = {.op = 0x13, .funct3 = 0x3, .valid = 1}; std::cout << "sltiu "; }
-    | XORI  { $$ = {.op = 0x13, .funct3 = 0x4, .valid = 1}; std::cout << "xori "; }
-    | ORI   { $$ = {.op = 0x13, .funct3 = 0x5, .valid = 1}; std::cout << "ori "; }
-    | ANDI  { $$ = {.op = 0x13, .funct3 = 0x6, .valid = 1}; std::cout << "andi "; }
-    | ECALL { $$ = {.op = 0x73, .imm12  = 0x0, .valid = 1}; std::cout << "ecall "; }
+      ADDI  { $$ = {.op = ADDI_32, .funct3 = 0x0, .valid = 1}; std::cout << "addi "; }
+    | SLTI  { $$ = {.op = SLTI_32, .funct3 = 0x2, .valid = 1}; std::cout << "slti"; }
+    | SLTIU { $$ = {.op = SLTIU_32, .funct3 = 0x3, .valid = 1}; std::cout << "sltiu "; }
+    | XORI  { $$ = {.op = XORI_32, .funct3 = 0x4, .valid = 1}; std::cout << "xori "; }
+    | ORI   { $$ = {.op = ORI_32, .funct3 = 0x5, .valid = 1}; std::cout << "ori "; }
+    | ANDI  { $$ = {.op = ANDI_32, .funct3 = 0x6, .valid = 1}; std::cout << "andi "; }
+    | ECALL { $$ = {.op = ECALL_32, .imm12  = 0x0, .valid = 1}; std::cout << "ecall "; }
 
-    | BEQ   { $$ = {.op = 0x63, .funct3 = 0x0, .valid = 1}; std::cout << "beq "; }
+    | BEQ   { $$ = {.op = BEQ_32, .funct3 = 0x0, .valid = 1}; std::cout << "beq "; }
 
-    | ADD   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; std::cout << "add "; }
-    | SUB   { $$ = {.op = 0x33, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; std::cout << "sub "; }
+    | ADD   { $$ = {.op = ADD_32, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; std::cout << "add "; }
+    | SUB   { $$ = {.op = SUB_32, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; std::cout << "sub "; }
 
-    | LB    { $$ = {.op = 0x03, .funct3 = 0x0, .valid = 1}; std::cout << "lb "; }
-    | LH    { $$ = {.op = 0x03, .funct3 = 0x1, .valid = 1}; std::cout << "lh "; }
-    | LW    { $$ = {.op = 0x03, .funct3 = 0x2, .valid = 1}; std::cout << "lw "; }
-    | LBU   { $$ = {.op = 0x03, .funct3 = 0x4, .valid = 1}; std::cout << "lbu "; }
-    | LHU   { $$ = {.op = 0x03, .funct3 = 0x5, .valid = 1}; std::cout << "lhu "; }
+    | LB    { $$ = {.op = LB_32, .funct3 = 0x0, .valid = 1}; std::cout << "lb "; }
+    | LH    { $$ = {.op = LH_32, .funct3 = 0x1, .valid = 1}; std::cout << "lh "; }
+    | LW    { $$ = {.op = LW_32, .funct3 = 0x2, .valid = 1}; std::cout << "lw "; }
+    | LBU   { $$ = {.op = LBU_32, .funct3 = 0x4, .valid = 1}; std::cout << "lbu "; }
+    | LHU   { $$ = {.op = LHU_32, .funct3 = 0x5, .valid = 1}; std::cout << "lhu "; }
     ;
 
 register:

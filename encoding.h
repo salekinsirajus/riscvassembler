@@ -14,6 +14,7 @@
 
 #define INSTRUCTION_WIDTH sizeof(uint32_t)
 
+// Instruction types and details
 //R-type
 typedef struct rtype32_t {
     unsigned opcode :7;

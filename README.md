@@ -32,7 +32,6 @@ I am inclined towards raw offset
 - Implement label/symbol visibility
 - Add unresolved symbols to rela.text 
 
-
 ## Features
 aka the work in progress
 - [x] initialize symbol table and string table
@@ -40,7 +39,7 @@ aka the work in progress
 - [x] proper offset calculation for section headers
 - [x] add entry to the symtab
 - [x] add instructions to the text section
--  ~  address/ref resolution (single pass?)
+- [x] address/ref resolution (single pass?)
 - [ ] Implement macro/psuedo instructions
 - [ ] local label (1b, 2f, etc.)
 - [ ] Implement all ISA instructions
