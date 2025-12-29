@@ -25,8 +25,7 @@ typedef struct rtype32_t {
     unsigned funct7 :7;
 
     operator uint32_t() const {
-        return  (funct7 << 25)|(rs2 << 20)|(rs1 << 15)
-               |(funct3 << 12)|(rd << 7)  | opcode;
+        return  ((funct7 << 25)|(rs2 << 20)|(rs1 << 15) |(funct3 << 12)|(rd << 7) | opcode);
     }
 } rtype32_t;
 
@@ -44,8 +43,7 @@ typedef struct itype32_t{
     unsigned imm   :12;
 
     operator uint32_t() const {
-        return  (imm << 20)|(rs1 << 15)|(funct3 << 12)
-               |  (rd << 7)|opcode;
+        return  ((imm << 20)|(rs1 << 15)|(funct3 << 12) | (rd << 7)| opcode);
     }
 } itype32_t;
 
@@ -63,8 +61,7 @@ typedef struct stype32_t{
     unsigned imm_hi: 7;
 
     operator uint32_t() const {
-         return  (imm_hi << 27)|(rs2 << 20) |(rs1 << 15)
-                |(funct3 << 12)|(imm_lo <<7)|opcode;
+         return ((imm_hi << 27)|(rs2 << 20) |(rs1 << 15) |(funct3 << 12)|(imm_lo <<7)|opcode);
     }
 
 } stype32_t;
@@ -104,9 +101,8 @@ typedef struct btype32_t{
     unsigned   imm12: 1;
 
     operator uint32_t() const {
-        return ((imm12 << 31)|(imm10_5 << 25)| (rs2 << 20)
-                 |(rs1 << 15)|(funct3 << 12) |(imm4_1 << 8)
-                 |(imm11<< 7)|opcode);
+        return ((imm12 << 31)|(imm10_5 << 25)| (rs2 << 20) |(rs1 << 15)|(funct3 << 12) |(imm4_1 << 8) |(imm11<< 7)
+                |opcode);
     }
    
     static btype32_t deserialize(uint32_t val) {
@@ -129,8 +125,27 @@ uint32_t emit_b_type_instruction(
     unsigned funct3, unsigned opcode
 );
 
+typedef struct jtype32_t {
+    unsigned opcode  : 7;
+    unsigned rd      : 5;
+    unsigned imm12_19: 8;
+    unsigned imm11   : 1;
+    unsigned imm1_10 :10;
+    unsigned imm20   : 1;
+
+    operator uint32_t const () {
+       return (imm20 << 31 | imm12_19 << 23 | imm11 << 22 | imm1_10 << 12 | rd << 7 |opcode);
+    }
+
+    //TODO: deserialize
+} jtype32_t;
+
+
+uint32_t emit_j_type_instruction(unsigned imm, unsigned rd, unsigned opcode);
+
 // IMPORTANT - this is for the bison non-terminal to be able to
-// return complex data.
+// return complex data. TODO: move this from here to somewhere more
+// appropriate perhaps?
 typedef struct opcode_t {
     unsigned op;
     unsigned funct3;
@@ -146,6 +161,7 @@ enum RISCV32_INST_TYPE {
 	I_TYPE,
 	S_TYPE,	
 	U_TYPE,
+    J_TYPE,
 };
 
 #endif //ENCODING_H

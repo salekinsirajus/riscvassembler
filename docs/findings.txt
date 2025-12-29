@@ -1,0 +1,13 @@
+I will be writing stuff here I find interesting while doing
+this project. Later on I might use this to write a couple of
+blog posts etc.
+
+## Grammar
+I had a difficult time finding a well-defined assembly grammar for
+RISC-V. It seems as though gas, nasm, and masm (and others) contributed
+to a mashed-potatoe of assembly grammar and they borrow syntax
+from one another. So it's hard to write an assembler when you don't have
+a BNF of the grammar for the language.
+
+## JUMP Statements
+I didn't know they were psuedo instructions.

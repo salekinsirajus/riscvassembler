@@ -22,13 +22,8 @@ can open it with a hex viewer like `xxd out.o` to see
 the content.
 
 ## WIP: Reference Resolution
-_This portion is for scratch notes as I am working through
-a feature or a component_
- 
-- TODO: set expectation for every emit method for immediate
-values being passed. Are they raw offset or bit-shifted already?
-I am inclined towards raw offset
-- Make sure sign-extension etc works
+- We need to fix the offsets (sign-extension, alignment, rang-check) outside the emit functions
+- Implement a deserialize function for J-type
 - Implement label/symbol visibility
 - Add unresolved symbols to rela.text 
 

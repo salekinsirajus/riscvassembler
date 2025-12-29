@@ -1,8 +1,5 @@
 #include "encoding.h"
 
-uint32_t emit_l_type_instruction(unsigned rd, unsigned lui_imm, unsigned opcode){
-}
-
 uint32_t emit_u_type_instruction(unsigned imm, unsigned rd, unsigned opcode)
 {
     /*
@@ -77,6 +74,21 @@ uint32_t emit_b_type_instruction(
     // imm:  0 0 0 0 0 C B A 9 8 7 6 5
     //                     1 1 1 1 1 1
     i.imm10_5=  (imm >> 5) & 0x3F;
+
+    return static_cast<uint32_t>(i);
+}
+
+// imm needs to be PC-relative, sign-extended
+uint32_t emit_j_type_instruction(
+    unsigned imm, unsigned rd, unsigned opcode
+){
+    jtype32_t i;
+    i.opcode = opcode;
+    i.rd = rd;
+    i.imm1_10 = (imm >> 1) & 0x3FF;
+    i.imm11 = (imm >> 11) & 0x1;
+    i.imm12_19 = (imm >> 12) & 0xFF;
+    i.imm20 = (imm >> 20) & 0x1;
 
     return static_cast<uint32_t>(i);
 }

@@ -228,23 +228,28 @@ psuedo_instruction:
     }
     | JUMP LABEL
     {
-        // alias for risc-v 32base int ISA: jal x0, label
+        // alias of: jal x0, label
         std::cout << "j " << $2 << std::endl;
         offset = 0;
         op_status = newElfContent.resolve_label($2, offset); 
         if (op_status == -1){
             std::cout << "no valid address found: " << offset << std::endl;
             newElfContent.add_to_unresolved_insns(
-                newElfContent.get_next_insn_number(currentSection), U_TYPE, offset,
+                newElfContent.get_next_insn_number(currentSection), J_TYPE, offset,
                 newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
-        temp_inst = emit_u_type_instruction(0x0, 0 /*rd=x0*/, JALR_32); 
+
+        // 2-bit alignment
+        offset = offset << 1;
+        // sign-check
+        offset = (uint32_t)(offset & 0x1FFFFF);
+        // TODO: range check 
+        temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32); 
 
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst)); 
-        //TODO: remove hardcoded opcode and use an enum instead
     }
     | MOV REG COMMA REG
     {
@@ -258,7 +263,7 @@ psuedo_instruction:
     {
         std::cout << "jalr x0, x1, x0 [ret]" << std::endl;
         temp_inst = emit_i_type_instruction(
-           0/*rd=x0*/, 0 /*rs1=x0*/, 1 /*imm*/, 0x0/*funct3*/, 0x67
+           0/*rd=x0*/, 0 /*rs1=x0*/, 1 /*imm*/, 0x0/*funct3*/, JALR_32
         ); // FIXME: the annotations of params are wrong
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
