@@ -1,5 +1,5 @@
 %{
-    //c.l (for flex)
+    //for flex
     #include <iostream>
     #include <stdio.h>
     #include "linux/elf.h"
@@ -78,6 +78,9 @@
                  }
 zero             { yylval.ival = 0; return REG; }
 [a][0-7]         { yylval.ival = 10 + atoi(&yytext[1]); return REG; }
+[x]([0-9]|[12][0-9]|[3][01]) { 
+                   yylval.ival = atoi(yytext+1); return REG; 
+                 }
 [x][0-9]         { yylval.ival = atoi(&yytext[1]); return REG; }
 [t][0-2]         { yylval.ival = 5 + atoi(&yytext[1]); return REG;}
 

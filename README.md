@@ -29,7 +29,8 @@ the content.
 - [x] add entry to the symtab
 - [x] add instructions to the text section
 - [x] address/ref resolution (single pass.)
-- [ ] Expand lexer to recognize all registers x0-x31 and all aliases (t0-t6, s0-s11, a0-a7, fp)
+- [x] Expand lexer to recognize all registers x0-x31 
+- [ ] Get lexer to recongize all aliases (t0-t6, s0-s11, a0-a7, fp)
 - [ ] Extend immediate parsing to support negative numbers, hexadecimal (0x...), binary (0b...), and larger constants.
 - [ ] Fix the offsets (sign-extension, alignment, rang-check) outside the emit functions
 - [ ] Implement a deserialize function for J-type
