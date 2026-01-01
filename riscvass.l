@@ -78,11 +78,14 @@
                  }
 zero             { yylval.ival = 0; return REG; }
 [a][0-7]         { yylval.ival = 10 + atoi(&yytext[1]); return REG; }
+[t][0-2]         { yylval.ival = 5 + atoi(&yytext[1]); return REG;}
+[t][3-6]         { yylval.ival = 25 + atoi(&yytext[1]); return REG;}
+[s][01]          { yylval.ival = 8 + atoi(&yytext[1]); return REG;}
+[s]([2-9]|[1][01]) { yylval.ival = 16 + atoi(&yytext[1]); return REG;}
 [x]([0-9]|[12][0-9]|[3][01]) { 
                    yylval.ival = atoi(yytext+1); return REG; 
                  }
 [x][0-9]         { yylval.ival = atoi(&yytext[1]); return REG; }
-[t][0-2]         { yylval.ival = 5 + atoi(&yytext[1]); return REG;}
 
 \."section"      { return SECTION; }
 \."text"         { return D_TEXT; }
