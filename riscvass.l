@@ -77,6 +77,10 @@
                     return IMM;
                  }
 zero             { yylval.ival = 0; return REG; }
+ra               { yylval.ival = 1; /*return address */ return REG; }
+sp               { yylval.ival = 2; /*stack pointer  */ return REG; }
+gp               { yylval.ival = 3; /*global pointer */ return REG; }
+tp               { yylval.ival = 4; /*thread pointer */ return REG; }
 [a][0-7]         { yylval.ival = 10 + atoi(&yytext[1]); return REG; }
 [t][0-2]         { yylval.ival = 5 + atoi(&yytext[1]); return REG;}
 [t][3-6]         { yylval.ival = 25 + atoi(&yytext[1]); return REG;}
