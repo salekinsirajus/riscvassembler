@@ -71,11 +71,16 @@
 
 "ret"            { return RET; }
 
-[1-9]?[0-9]      {
+[0-9]+           {
                     //TODO:  need to differentiate bw imm vs offset
                     yylval.ival = atoi(yytext);
                     return IMM;
                  }
+0[xX][0-9a-fA-F]+ {
+                    //TODO: does it need a different field?
+                    yylval.ival = strtol(yytext+2, NULL, 16); return IMM;
+                 }
+0[bB][01]+       { yylval.ival = strtol(yytext+2, NULL, 2); return IMM; }
 zero             { yylval.ival = 0; return REG; }
 ra               { yylval.ival = 1; /*return address */ return REG; }
 sp               { yylval.ival = 2; /*stack pointer  */ return REG; }
@@ -89,7 +94,6 @@ tp               { yylval.ival = 4; /*thread pointer */ return REG; }
 [x]([0-9]|[12][0-9]|[3][01]) { 
                    yylval.ival = atoi(yytext+1); return REG; 
                  }
-[x][0-9]         { yylval.ival = atoi(&yytext[1]); return REG; }
 
 \."section"      { return SECTION; }
 \."text"         { return D_TEXT; }
