@@ -11,3 +11,7 @@ a BNF of the grammar for the language.
 
 ## JUMP Statements
 I didn't know they were psuedo instructions.
+
+## Sign Extension
+Sign extension seems pretty convoluted but apparently it is designed
+to reduce complexity in hardware implementation.
