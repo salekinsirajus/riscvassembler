@@ -17,6 +17,8 @@
     extern int yyparse();
     extern FILE *yyin;
     void yyerror(const char *s);
+    extern int linenum;
+    extern int charnum;
 
     // go from left to right
     // TODO: remove the specific data type
@@ -29,6 +31,10 @@
     std::string currentSection;
     std::string currentLabel;
     int32_t op_status;
+
+    std::string source_filename;
+    std::string out_filename;
+    std::string current_stmt; //TODO: try use flex/bison provided variables
 %}
 
 %union {
@@ -166,8 +172,13 @@ instruction:
     | opcode register COMMA register COMMA IMM
     {
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        std::cout << "r" << $2 << ", r" << $4 << ", " << $6 << std::endl;
-        temp_inst = emit_i_type_instruction($2, $4, $6, 0, ($1).op);
+        //current_stmt = "r" + $2 ", r" + $4 + ", " + $6; FIXME
+        current_stmt += "x" + std::to_string($2) + ", x" + std::to_string($4) + ", " + std::to_string($6);
+        if (!is_within_range_12b($6)){
+           exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string($6) ,0);
+        }
+        offset = (uint32_t)($6 & 0xFFF); // 12-bit?
+        temp_inst = emit_i_type_instruction($2, $4, offset, 0, ($1).op);
         newElfContent.add_to_text(temp_inst); //TODO: add API
 
         ($1).valid = 0;
@@ -271,24 +282,24 @@ psuedo_instruction:
     ;
 
 opcode:
-      ADDI  { $$ = {.op = ADDI_32, .funct3 = 0x0, .valid = 1}; std::cout << "addi "; }
-    | SLTI  { $$ = {.op = SLTI_32, .funct3 = 0x2, .valid = 1}; std::cout << "slti"; }
-    | SLTIU { $$ = {.op = SLTIU_32, .funct3 = 0x3, .valid = 1}; std::cout << "sltiu "; }
-    | XORI  { $$ = {.op = XORI_32, .funct3 = 0x4, .valid = 1}; std::cout << "xori "; }
-    | ORI   { $$ = {.op = ORI_32, .funct3 = 0x5, .valid = 1}; std::cout << "ori "; }
-    | ANDI  { $$ = {.op = ANDI_32, .funct3 = 0x6, .valid = 1}; std::cout << "andi "; }
-    | ECALL { $$ = {.op = ECALL_32, .imm12  = 0x0, .valid = 1}; std::cout << "ecall "; }
+      ADDI  { $$ = {.op = ADDI_32,  .funct3 = 0x0, .valid = 1}; current_stmt = "addi "; }
+    | SLTI  { $$ = {.op = SLTI_32,  .funct3 = 0x2, .valid = 1}; current_stmt = "slti"; }
+    | SLTIU { $$ = {.op = SLTIU_32, .funct3 = 0x3, .valid = 1}; current_stmt = "sltiu "; }
+    | XORI  { $$ = {.op = XORI_32,  .funct3 = 0x4, .valid = 1}; current_stmt =  "xori "; }
+    | ORI   { $$ = {.op = ORI_32,   .funct3 = 0x5, .valid = 1}; current_stmt =  "ori "; }
+    | ANDI  { $$ = {.op = ANDI_32,  .funct3 = 0x6, .valid = 1}; current_stmt =  "andi "; }
+    | ECALL { $$ = {.op = ECALL_32, .imm12  = 0x0, .valid = 1}; current_stmt =  "ecall "; }
 
-    | BEQ   { $$ = {.op = BEQ_32, .funct3 = 0x0, .valid = 1}; std::cout << "beq "; }
+    | BEQ   { $$ = {.op = BEQ_32,   .funct3 = 0x0, .valid = 1}; current_stmt =  "beq "; }
 
-    | ADD   { $$ = {.op = ADD_32, .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; std::cout << "add "; }
-    | SUB   { $$ = {.op = SUB_32, .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; std::cout << "sub "; }
+    | ADD   { $$ = {.op = ADD_32,   .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; current_stmt = "add "; }
+    | SUB   { $$ = {.op = SUB_32,   .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; current_stmt = "sub "; }
 
-    | LB    { $$ = {.op = LB_32, .funct3 = 0x0, .valid = 1}; std::cout << "lb "; }
-    | LH    { $$ = {.op = LH_32, .funct3 = 0x1, .valid = 1}; std::cout << "lh "; }
-    | LW    { $$ = {.op = LW_32, .funct3 = 0x2, .valid = 1}; std::cout << "lw "; }
-    | LBU   { $$ = {.op = LBU_32, .funct3 = 0x4, .valid = 1}; std::cout << "lbu "; }
-    | LHU   { $$ = {.op = LHU_32, .funct3 = 0x5, .valid = 1}; std::cout << "lhu "; }
+    | LB    { $$ = {.op = LB_32,    .funct3 = 0x0, .valid = 1}; current_stmt = "lb "; }
+    | LH    { $$ = {.op = LH_32,    .funct3 = 0x1, .valid = 1}; current_stmt = "lh "; }
+    | LW    { $$ = {.op = LW_32,    .funct3 = 0x2, .valid = 1}; current_stmt = "lw "; }
+    | LBU   { $$ = {.op = LBU_32,   .funct3 = 0x4, .valid = 1}; current_stmt = "lbu "; }
+    | LHU   { $$ = {.op = LHU_32,   .funct3 = 0x5, .valid = 1}; current_stmt = "lhu "; }
     ;
 
 register:
@@ -316,6 +327,10 @@ int main(int argc, char** argv){
         cout << "Error: Cannot open file " << argv[1] << endl;
         return -1; //really -1?
     }
+
+    // set source and output filenames
+    source_filename = std::string(argv[1]);
+    out_filename = "out.o";
 
     // Set lex to read from the file instead of STDIN
     yyin = src;

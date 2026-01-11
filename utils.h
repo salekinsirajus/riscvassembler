@@ -1,5 +1,25 @@
 #include "encoding.h"
+#include <iostream>
 
+#define MAX_12BIT_SIGNED  2047
+#define MIN_12BIT_SIGNED -2048
+
+void exit_with_message(
+    int32_t line_no, int32_t col_no, std::string source_filename, 
+    std::string offending_stmt, std::string error_token, int32_t error_code)
+{
+   // TODO: add a data structure to pull the message string instead of hardcoding
+   // TODO: them into this function utilize the error_code for this purpose.
+   std::string MSG = "value is out of the acceptable range";
+   std::cout << source_filename << ":" << line_no << ":" << " " << MSG << " ";
+   std::cout << error_token << " in " << offending_stmt << std::endl;
+   exit(1);
+}
+
+bool is_within_range_12b(int32_t imm)
+{
+    return (imm >= MIN_12BIT_SIGNED) && (imm <= MAX_12BIT_SIGNED);
+}
 
 // Function to print the instruction structure in hex
 void print_instruction_hex(const rtype32_t& instr) {

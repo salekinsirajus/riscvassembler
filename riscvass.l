@@ -71,7 +71,7 @@
 
 "ret"            { return RET; }
 
-[0-9]+           {
+[+-]?[0-9]+           {
                     //TODO:  need to differentiate bw imm vs offset
                     yylval.ival = atoi(yytext);
                     return IMM;
@@ -108,6 +108,6 @@ tp               { yylval.ival = 4; /*thread pointer */ return REG; }
 [_]?[a-zA-Z0-9]* { yylval.sval = strdup(yytext); return LABEL; }
 \"([^\"]*)\"     { yylval.sval = strdup(yytext); return STRING; }
 ,                { return COMMA; }
-.                { cout << "Line: "<< linenum << ": char " << charnum << ", unknown token. (" << yytext << ")" << endl; }
+.                { cout << "Line: "<< linenum << ": (" << charnum << "), unknown token. (" << yytext << ")" << endl; }
 %%
 
