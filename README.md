@@ -21,7 +21,6 @@ This will result in an object file called `out.o`. you
 can open it with a hex viewer like `xxd out.o` to see
 the content.
 
-
 ## Work in progress
 - [x] initialize symbol table and string table
 - [x] add entry to the strtab
@@ -51,7 +50,8 @@ the content.
 - [ ] Update ELF header fields dynamically: e_shnum, e_shstrndx, e_shoff, and section flags.
 - [ ] Implement arithmetic expressions for immediates and label offsets.
 - [ ] Implement proper handling of global vs local symbols in the symbol table.
-- [ ] Improve error handling with line numbers, semantic checks, and warnings for undefined symbols.
+- [x] Improve error handling with line numbers, semantic checks
+- [ ] Improve error handling with warnings for undefined symbols.
 - [ ] add a test suite and example output files
 - [ ] Implement ECALL and system instruction handling fully with proper encoding.
 - [ ] Add support for forward-declared labels in data sections.

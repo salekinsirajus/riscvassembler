@@ -131,7 +131,6 @@ void ELF32::init_symtab(){
     sh->sh_name = store_section_name(section_name);
     sh->sh_link = 1; // FIXME: sh idx of whichever string table
     sh->sh_info = 1;  // last STB_LOCAL index in the symtab + 1
-    std::cout << "Symtab sh_name: " << sh->sh_name << std::endl;
 
     Symtab* s = new Symtab();
     symtab = s;
