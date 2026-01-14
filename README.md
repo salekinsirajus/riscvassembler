@@ -52,10 +52,11 @@ the content.
 - [ ] Implement proper handling of global vs local symbols in the symbol table.
 - [x] Improve error handling with line numbers, semantic checks
 - [ ] Improve error handling with warnings for undefined symbols.
+- [ ] Add logging/debugging support for unresolved instructions and symbol resolution.
+- [ ] Refactor error reporting/debug mode with multiple output streams so they can be turned on or off as needed
 - [ ] add a test suite and example output files
 - [ ] Implement ECALL and system instruction handling fully with proper encoding.
 - [ ] Add support for forward-declared labels in data sections.
 - [ ] Refactor ELF32 serialization to correctly update offsets, sizes, and section headers dynamically.
 - [ ] verify proper handling of branch offsets for B-type and J-type instructions.
-- [ ] Add logging/debugging support for unresolved instructions and symbol resolution.
 - [ ] Add support for effectively required extensions
