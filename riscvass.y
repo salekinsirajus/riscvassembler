@@ -22,14 +22,15 @@
 
     // go from left to right
     // TODO: remove the specific data type
-    rtype32_t    rtype_instr;
-    itype32_t    itype_instr;
-    uint32_t     temp_inst;
+    rtype32_t rtype_instr;
+    itype32_t itype_instr;
+    uint32_t  temp_inst;
 
-    uint32_t offset;
-    std::string   temp_value;
+    std::string temp_value;
     std::string currentSection;
     std::string currentLabel;
+
+    uint32_t offset;
     int32_t op_status;
 
     std::string source_filename;
@@ -46,7 +47,7 @@
 }
 
 
-//Terminal symbols 
+//Terminal symbols
 // TODO - group them by types
 %token <token> REG
 %token <token> COMMA
@@ -84,7 +85,7 @@ program:
     {
         std::cout << "reading program" << std::endl;
         newElfContent._resolve_unresolved_instructions();
-        write_elf(newElfContent, "out.o");
+        write_elf(newElfContent, out_filename);
     }
     ;
 
@@ -106,7 +107,7 @@ statement:
         //TODO: add other type of values besides string
         //FIXME: is this even correct?
         if (temp_value.size() > 0){
-            newElfContent.add_variable_to_symtab(currentLabel, temp_value, ".data");    
+            newElfContent.add_variable_to_symtab(currentLabel, temp_value, ".data");
             temp_value = "";  //reset
         }
     }
@@ -142,7 +143,7 @@ directive:
     }
     | D_GLOBAL LABEL
     {
-        std::cout << ".globl LABEL (" << $2 << ")" << std::endl; 
+        std::cout << ".globl LABEL (" << $2 << ")" << std::endl;
         //newElfContent.update_label_visibility($2, true);
     }
     | D_ASCII STRING
@@ -242,7 +243,7 @@ psuedo_instruction:
         // alias of: jal x0, label
         std::cout << "j " << $2 << std::endl;
         offset = 0;
-        op_status = newElfContent.resolve_label($2, offset); 
+        op_status = newElfContent.resolve_label($2, offset);
         if (op_status == -1){
             std::cout << "no valid address found: " << offset << std::endl;
             newElfContent.add_to_unresolved_insns(
@@ -255,12 +256,12 @@ psuedo_instruction:
         offset = offset << 1;
         // sign-check
         offset = (uint32_t)(offset & 0x1FFFFF);
-        // TODO: range check 
-        temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32); 
+        // TODO: range check
+        temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32);
 
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
         newElfContent.add_to_text(temp_inst);
-        std::memset(&temp_inst, 0, sizeof(temp_inst)); 
+        std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | MOV REG COMMA REG
     {
@@ -319,7 +320,7 @@ int main(int argc, char** argv){
 
     if (argc < 2){
         cout << "No source file passed\n" << endl;
-        cout << "Usage: " << argv[0] << " file.s" << endl;
+        cout << "Usage: " << argv[0] << " file.s -o out.o" << endl;
         return 1;
     }
     FILE *src = fopen(argv[1], "r");
@@ -328,9 +329,16 @@ int main(int argc, char** argv){
         return -1; //really -1?
     }
 
-    // set source and output filenames
-    source_filename = std::string(argv[1]);
-    out_filename = "out.o";
+    if (argc == 4)
+    {
+       out_filename = argv[3];
+    }
+    else
+    {
+       // set source and output filenames
+       source_filename = std::string(argv[1]);
+       out_filename = generate_dest_filename(source_filename);
+    }
 
     // Set lex to read from the file instead of STDIN
     yyin = src;
@@ -338,11 +346,7 @@ int main(int argc, char** argv){
     yyparse();
     while(yylex());
 
-    //close file
     fclose(src);
-
-    //std::string dst = "out.data";
-    //write_empty_elf(dst);
 
     return 0;
 }

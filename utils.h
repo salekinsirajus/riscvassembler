@@ -1,12 +1,28 @@
 #include "encoding.h"
 #include <iostream>
+#include <string>
 
 #define MAX_12BIT_SIGNED  2047
 #define MIN_12BIT_SIGNED -2048
 
+std::string generate_dest_filename(std::string source_filename)
+{
+    size_t last_dot = source_filename.find_last_of("."); // last occurance of the dot
+    std::string result;
+    const std::string ext = ".o";
+    if (last_dot == std::string::npos)
+    {
+        return source_filename + ext;
+    } 
+
+    // is a name like .x is going to cause problem?
+    return source_filename.substr(0, last_dot) + ext;
+}
+
 void exit_with_message(
     int32_t line_no, int32_t col_no, std::string source_filename, 
-    std::string offending_stmt, std::string error_token, int32_t error_code)
+    std::string offending_stmt, std::string error_token, int32_t error_code
+)
 {
    // TODO: add a data structure to pull the message string instead of hardcoding
    // TODO: them into this function utilize the error_code for this purpose.
@@ -39,4 +55,3 @@ void print_instruction(const rtype32_t& instr) {
 		   instr.opcode, instr.rd, instr.funct3, instr.rs1, instr.rs2, instr.funct7);
 	print_instruction_hex(instr);
 }
-

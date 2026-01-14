@@ -14,6 +14,7 @@ ENC_GEN = encoding
 ENC_SRC = encoding.cc
 
 LINUX_SRC = linux/elf.cc
+TESTS_DIR = tests
 
 all: $(TARGET)
 
@@ -32,8 +33,11 @@ $(TARGET): $(PARSE_GEN) $(LEX_GEN) $(LINUX_SRC)
 clean:
 	rm -f $(LEX_GEN) $(TARGET) $(PARSE_GEN) $(ENC_GEN) riscvass.tab.h
 
+cleantest:
+	rm -f $(TESTS_DIR)/*.o
+
 rebuild:
 	$(MAKE) clean
 	$(MAKE) all
 
-.PHONY: all clean rebuild
+.PHONY: all clean cleantest rebuild
