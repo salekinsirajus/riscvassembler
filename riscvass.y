@@ -83,7 +83,6 @@
 program:
     statements
     {
-        std::cout << "reading program" << std::endl;
         newElfContent._resolve_unresolved_instructions();
         write_elf(newElfContent, out_filename);
     }
@@ -96,14 +95,11 @@ statements:
 statement:
      LABEL COLON instructions
     {
-        cout<< "LABEL: instructions" << endl;
-        // This is where a label and associated instructions start
         newElfContent.init_label($1, false/*is_global*/, currentSection);
     }
     | LABEL COLON directive
     {
         currentLabel = $1;
-        std::cout << "LABEL: directive (" << currentLabel << ")" << std::endl;
         //TODO: add other type of values besides string
         //FIXME: is this even correct?
         if (temp_value.size() > 0){
@@ -143,8 +139,7 @@ directive:
     }
     | D_GLOBAL LABEL
     {
-        std::cout << ".globl LABEL (" << $2 << ")" << std::endl;
-        //newElfContent.update_label_visibility($2, true);
+        newElfContent.update_label_visibility($2, true);
     }
     | D_ASCII STRING
     {
@@ -173,7 +168,6 @@ instruction:
     | opcode register COMMA register COMMA IMM
     {
         //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        //current_stmt = "r" + $2 ", r" + $4 + ", " + $6; FIXME
         current_stmt += "x" + std::to_string($2) + ", x" + std::to_string($4) + ", " + std::to_string($6);
         if (!is_within_range_12b($6)){
            exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string($6) ,0);
@@ -188,7 +182,7 @@ instruction:
     | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
         std::cout << "r" << $2 << " " << $4 << "(r" << $6 << ")" << std::endl;
-        // I think these are I-type instructions
+        // Loads are I-types, stores are S-types
         // TODO: sign-extended and unsigned are handled appropriately
         temp_inst = emit_i_type_instruction($2, $6, $4, ($1).funct3, ($1).op);
         newElfContent.add_to_text(temp_inst);
@@ -198,6 +192,7 @@ instruction:
     }
     | opcode register COMMA register COMMA LABEL
     {
+        // These are typically branch instructions
         std::cout << "r"<< $2 << ", r" << $4 << ", " << $6 << std::endl;
         offset = 0;
         op_status = newElfContent.resolve_label($6, offset);
@@ -234,7 +229,7 @@ instruction:
 psuedo_instruction:
       LA REG COMMA LABEL
     {
-        std::cout << "la t0 addr" << std::endl;
+        std::cout << "la " << $2 << " " << $4 << std::endl;
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
     }
