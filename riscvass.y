@@ -116,13 +116,11 @@ statement:
 directive:
      SECTION D_DATA
     {
-        std::cout << "section .data" << std::endl;
         currentSection = ".data";
         currentLabel = ".data";
     }
     | SECTION D_TEXT
     {
-        std::cout << "section .text" << std::endl;
         currentSection = ".text";
         currentLabel = ".text";
     }
@@ -133,7 +131,6 @@ directive:
     }
     | D_DATA
     {
-        std::cout << ".data" << std::endl;
         currentSection = ".data";
         currentLabel = ".data";
     }
@@ -229,7 +226,7 @@ instruction:
 psuedo_instruction:
       LA REG COMMA LABEL
     {
-        std::cout << "la " << $2 << " " << $4 << std::endl;
+        std::cout << "la x" << $2 << " " << $4 << std::endl;
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
     }
@@ -260,7 +257,7 @@ psuedo_instruction:
     }
     | MOV REG COMMA REG
     {
-        std::cout << "mv r"<< $2 << ", r" << $4 << std::endl;
+        std::cout << "mv x"<< $2 << ", x" << $4 << std::endl;
         //TODO: make sure the MOV insturction is completely expanded
         temp_inst = emit_i_type_instruction($2, $4, 0, 0x0, 0x13);
         newElfContent.add_to_text(temp_inst);
@@ -308,7 +305,7 @@ register:
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "ERROR: %s\n", s);
+    fprintf(stderr, "Error: %s\n", s);
 }
 
 int main(int argc, char** argv){
