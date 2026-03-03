@@ -2,8 +2,10 @@
 #include <iostream>
 #include <string>
 
-#define MAX_12BIT_SIGNED  2047
-#define MIN_12BIT_SIGNED -2048
+#define MAX_12_BIT_SIGNED  2047  // 2^12 - 1
+#define MIN_12_BIT_SIGNED -2048  // -2^12
+#define MAX_21_BIT_SIGNED  1048575  // 2^20 - 1
+#define MIN_21_BIT_SIGNED -1048576  // -2^20
 
 std::string generate_dest_filename(std::string source_filename)
 {
@@ -34,7 +36,12 @@ void exit_with_message(
 
 bool is_within_range_12b(int32_t imm)
 {
-    return (imm >= MIN_12BIT_SIGNED) && (imm <= MAX_12BIT_SIGNED);
+    return (imm >= MIN_12_BIT_SIGNED) && (imm <= MAX_12_BIT_SIGNED);
+}
+
+bool is_within_range_21b(int32_t imm)
+{
+    return (imm >= MIN_21_BIT_SIGNED) && (imm <= MAX_21_BIT_SIGNED);
 }
 
 // Function to print the instruction structure in hex

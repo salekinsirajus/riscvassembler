@@ -220,6 +220,8 @@ instruction:
     | psuedo_instruction
     {
         std::cout << "psuedo-instruction" << std::endl;
+        // TODO: implement jumps as instructions so they can be called
+        // from psuedo_instructions instead of rewriting them
     }
     ;
 
@@ -248,7 +250,9 @@ psuedo_instruction:
         offset = offset << 1;
         // sign-check
         offset = (uint32_t)(offset & 0x1FFFFF);
-        // TODO: range check
+        if (!is_within_range_21b(offset)){
+           exit_with_message(linenum, charnum, source_filename, "j label", std::to_string(offset) ,0);
+        }
         temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32);
 
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
