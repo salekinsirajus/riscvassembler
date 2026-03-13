@@ -238,26 +238,27 @@ psuedo_instruction:
         std::cout << "j " << $2 << std::endl;
         offset = 0;
         op_status = newElfContent.resolve_label($2, offset);
-        if (op_status == -1){
+        if (op_status == -1)
+        {
             std::cout << "no valid address found: " << offset << std::endl;
             newElfContent.add_to_unresolved_insns(
                 newElfContent.get_next_insn_number(currentSection), J_TYPE, offset,
                 newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
             );
-        }
+        } 
+        else
+        {
+            offset = offset << 1; // 2-bit alignment
+            offset = (uint32_t)(offset & 0x1FFFFF); // sign-check
+            if (!is_within_range_21b(offset)){
+               exit_with_message(linenum, charnum, source_filename, "j label", std::to_string(offset) ,0);
+            }
 
-        // 2-bit alignment
-        offset = offset << 1;
-        // sign-check
-        offset = (uint32_t)(offset & 0x1FFFFF);
-        if (!is_within_range_21b(offset)){
-           exit_with_message(linenum, charnum, source_filename, "j label", std::to_string(offset) ,0);
+            temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32);
+            std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
+            newElfContent.add_to_text(temp_inst);
+            std::memset(&temp_inst, 0, sizeof(temp_inst));
         }
-        temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32);
-
-        std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
-        newElfContent.add_to_text(temp_inst);
-        std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | MOV REG COMMA REG
     {
