@@ -156,7 +156,7 @@ instruction:
         //R-format: opcode dest, rs1, rs2
         //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
         std::cout << "r" << $2 << ", r" << $4 << ", r" << $6 << std::endl;
-        temp_inst = emit_r_type_instruction(0, $4, $6, 0, $2, ($1).op);
+        temp_inst = emit_r_type_instruction(0, $4, $6, ($1).funct3, $2, ($1).op);
         newElfContent.add_to_text(temp_inst); //TODO: add API
 
         ($1).valid = 0;
@@ -170,7 +170,7 @@ instruction:
            exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string($6) ,0);
         }
         offset = (uint32_t)($6 & 0xFFF); // 12-bit?
-        temp_inst = emit_i_type_instruction($2, $4, offset, 0, ($1).op);
+        temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
         newElfContent.add_to_text(temp_inst); //TODO: add API
 
         ($1).valid = 0;
@@ -211,7 +211,7 @@ instruction:
         //syscalls
         std::cout << "ecall /syscall" << std::endl;
         temp_inst = emit_i_type_instruction(
-           0,0,($1).imm12,0,($1).op
+           0,0,($1).imm12,($1).funct3,($1).op
         );
         newElfContent.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
