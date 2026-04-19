@@ -33,7 +33,7 @@ the content.
 - [x] Implement alias recognition for commonly used registers (ra, sp, gp, tp)
 - [x] Extend immediate parsing to support negative numbers, hexadecimal (0x...), binary (0b...), and larger constants.
 - [x] Implement the ability to add custom output filename
-- [ ] Fix the offsets (sign-extension, alignment, rang-check) outside the emit functions
+- [x] Fix the offsets (sign-extension, alignment, rang-check) outside the emit functions
 - [ ] Implement a deserialize function for J-type
 - [ ] Implement label/symbol visibility
 - [ ] Add unresolved symbols to rela.text 
