@@ -126,18 +126,35 @@ uint32_t emit_b_type_instruction(
 );
 
 typedef struct jtype32_t {
-    unsigned opcode  : 7;
-    unsigned rd      : 5;
-    unsigned imm12_19: 8;
-    unsigned imm11   : 1;
-    unsigned imm1_10 :10;
-    unsigned imm20   : 1;
+    uint32_t opcode  : 7;
+    uint32_t rd      : 5;
+    uint32_t imm12_19: 8;
+    uint32_t imm11   : 1;
+    uint32_t imm1_10 :10;
+    uint32_t imm20   : 1;
 
-    operator uint32_t const () {
-       return (imm20 << 31 | imm12_19 << 23 | imm11 << 22 | imm1_10 << 12 | rd << 7 |opcode);
+    operator uint32_t () const {
+       return
+          (imm20   << 31) | 
+          (imm1_10 << 21) | 
+          (imm11   << 20) | 
+          (imm12_19<< 12) |
+          (rd      << 7 ) |
+          opcode;
     }
 
-    //TODO: deserialize
+    static jtype32_t deserialize(uint32_t val){
+        jtype32_t i{};
+        i.opcode   = (val >>  0) & 0x7F;
+        i.rd       = (val >>  7) & 0x1F;
+        i.imm12_19 = (val >> 12) & 0xFF;
+        i.imm11    = (val >> 20) & 0x1;
+        i.imm1_10  = (val >> 21) & 0x3FF;
+        i.imm20    = (val >> 31) & 0x1;
+
+        return i;
+    }
+ 
 } jtype32_t;
 
 
