@@ -17,12 +17,12 @@
 // Instruction types and details
 //R-type
 typedef struct rtype32_t {
-    unsigned opcode :7;
-    unsigned rd     :5;
-    unsigned funct3 :3;
-    unsigned rs1    :5;
-    unsigned rs2    :5;
-    unsigned funct7 :7;
+    uint32_t opcode :7;
+    uint32_t rd     :5;
+    uint32_t funct3 :3;
+    uint32_t rs1    :5;
+    uint32_t rs2    :5;
+    uint32_t funct7 :7;
 
     operator uint32_t() const {
         return  ((funct7 << 25)|(rs2 << 20)|(rs1 << 15) |(funct3 << 12)|(rd << 7) | opcode);
@@ -36,11 +36,11 @@ uint32_t emit_r_type_instruction(
 
 //I-type
 typedef struct itype32_t{
-    unsigned opcode: 7;
-    unsigned rd    : 5;
-    unsigned funct3: 3;
-    unsigned rs1   : 5;
-    unsigned imm   :12;
+    uint32_t opcode: 7;
+    uint32_t rd    : 5;
+    uint32_t funct3: 3;
+    uint32_t rs1   : 5;
+    uint32_t imm   :12;
 
     operator uint32_t() const {
         return  ((imm << 20)|(rs1 << 15)|(funct3 << 12) | (rd << 7)| opcode);
@@ -53,12 +53,12 @@ uint32_t emit_i_type_instruction(
 );
 
 typedef struct stype32_t{
-    unsigned opcode: 7;
-    unsigned imm_lo: 5;
-    unsigned funct3: 3;
-    unsigned rs1   : 5;
-    unsigned rs2   : 5;
-    unsigned imm_hi: 7;
+    uint32_t opcode: 7;
+    uint32_t imm_lo: 5;
+    uint32_t funct3: 3;
+    uint32_t rs1   : 5;
+    uint32_t rs2   : 5;
+    uint32_t imm_hi: 7;
 
     operator uint32_t() const {
          return ((imm_hi << 27)|(rs2 << 20) |(rs1 << 15) |(funct3 << 12)|(imm_lo <<7)|opcode);
@@ -69,9 +69,9 @@ typedef struct stype32_t{
 uint32_t emit_s_type_instruction(unsigned rd, unsigned imm, unsigned opcode);
 
 typedef struct utype32_t{
-    unsigned opcode:  7;
-    unsigned     rd:  5;
-    unsigned    imm: 20;
+    uint32_t opcode:  7;
+    uint32_t     rd:  5;
+    uint32_t    imm: 20;
 
     operator uint32_t() const {
         return (imm << 12)|(rd <<  7)| opcode;
@@ -91,14 +91,14 @@ typedef struct utype32_t{
 uint32_t emit_u_type_instruction(unsigned imm, unsigned rd, unsigned opcode);
 
 typedef struct btype32_t{
-    unsigned  opcode: 7;
-    unsigned   imm11: 1;
-    unsigned  imm4_1: 4;
-    unsigned  funct3: 3;
-    unsigned     rs1: 5;
-    unsigned     rs2: 5;
-    unsigned imm10_5: 6;
-    unsigned   imm12: 1;
+    uint32_t  opcode: 7;
+    uint32_t   imm11: 1;
+    uint32_t  imm4_1: 4;
+    uint32_t  funct3: 3;
+    uint32_t     rs1: 5;
+    uint32_t     rs2: 5;
+    uint32_t imm10_5: 6;
+    uint32_t   imm12: 1;
 
     operator uint32_t() const {
         return ((imm12 << 31)|(imm10_5 << 25)| (rs2 << 20) |(rs1 << 15)|(funct3 << 12) |(imm4_1 << 8) |(imm11<< 7)
@@ -106,7 +106,7 @@ typedef struct btype32_t{
     }
    
     static btype32_t deserialize(uint32_t val) {
-        btype32_t i;
+        btype32_t i{};
         i.opcode   = val & 0x7F;                // bits 6:0
         i.imm11    = (val >> 7) & 0x1;          // bit 7
         i.imm4_1   = (val >> 8) & 0xF;          // bits 11:8
@@ -164,12 +164,12 @@ uint32_t emit_j_type_instruction(unsigned imm, unsigned rd, unsigned opcode);
 // return complex data. TODO: move this from here to somewhere more
 // appropriate perhaps?
 typedef struct opcode_t {
-    unsigned op;
-    unsigned funct3;
-    unsigned funct5;
-    unsigned funct7;
-    unsigned imm12;
-    int      valid;
+    uint32_t op;
+    uint32_t funct3;
+    uint32_t funct5;
+    uint32_t funct7;
+    uint32_t imm12;
+    int32_t  valid;
 } opcode_t;
 
 enum RISCV32_INST_TYPE {
