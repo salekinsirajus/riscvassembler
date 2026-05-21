@@ -48,7 +48,7 @@ the content.
 - [ ] Extend label handling to support multiple sections (text, data, rodata, bss).
 - [ ] Implement pseudo-instructions: LI, LA, NEG, NOT, SEQZ, SNEZ, SGTZ, etc.
 - [ ] Implement macro (?)
-- [ ] Update ELF header fields dynamically: e_shnum, e_shstrndx, e_shoff, and section flags.
+- [ ] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
 - [ ] Implement arithmetic expressions for immediates and label offsets.
 - [ ] Implement proper handling of global vs local symbols in the symbol table.
 - [x] Improve error handling with line numbers, semantic checks
