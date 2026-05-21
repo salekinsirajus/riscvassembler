@@ -75,7 +75,8 @@
 %token <sval> STRING
 %token <sval> LABEL
 %type <ival>  register;
-%type <opc_t> opcode;
+%type <opc_t> opcode;    // generic opcodes
+%type <opc_t> ls_opcode; // for loads aand stores
 
 %%
 //actual grammar
@@ -176,7 +177,7 @@ instruction:
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
-    | opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
+    | ls_opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
         std::cout << "r" << $2 << " " << $4 << "(r" << $6 << ")" << std::endl;
         // Loads are I-types, stores are S-types
@@ -220,8 +221,6 @@ instruction:
     | psuedo_instruction
     {
         std::cout << "psuedo-instruction" << std::endl;
-        // TODO: implement jumps as instructions so they can be called
-        // from psuedo_instructions instead of rewriting them
     }
     ;
 
@@ -292,6 +291,9 @@ opcode:
 
     | ADD   { $$ = {.op = ADD_32,   .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; current_stmt = "add "; }
     | SUB   { $$ = {.op = SUB_32,   .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; current_stmt = "sub "; }
+    ;
+
+ls_opcode:
 
     | LB    { $$ = {.op = LB_32,    .funct3 = 0x0, .valid = 1}; current_stmt = "lb "; }
     | LH    { $$ = {.op = LH_32,    .funct3 = 0x1, .valid = 1}; current_stmt = "lh "; }
