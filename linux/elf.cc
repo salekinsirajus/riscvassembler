@@ -355,6 +355,12 @@ void ELF32::_resolve_unresolved_instructions()
                sec_text->update_entry(entry.insn_number, insn);
                //std::cout << "done" << std::endl;
                break;
+            case J_TYPE:
+               jtype32_t unresolved_inst = jtype32_t::deserialize(insn);
+               resolved_insn_number = label_to_addr[entry.hash];
+               resolved_effective_offset = ((resolved_insn_number - entry.pc_insn_number)) * INSTRUCTION_WIDTH / 2;
+               insn = emit_j_type_instruction(resolved_effective_offset, unresolved_inst.rd, unresolved_inst.opcode);
+               sec_text->update_entry(entry.insn_number, insn);
         }
     }
 }
