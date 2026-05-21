@@ -3,7 +3,7 @@
     // for bison
     #include <stdio.h>
     #include <iostream>
-    #include "opcode.h"
+    #include "opcodes.h"
     #include "encoding.h"
     #include "utils.h"
     #include "linux/elf.h"
@@ -31,6 +31,7 @@
     std::string currentLabel;
 
     uint32_t offset;
+    uint32_t temp_opcode;
     int32_t op_status;
 
     std::string source_filename;
@@ -180,9 +181,18 @@ instruction:
     | ls_opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
         std::cout << "r" << $2 << " " << $4 << "(r" << $6 << ")" << std::endl;
-        // Loads are I-types, stores are S-types
-        // TODO: sign-extended and unsigned are handled appropriately
-        temp_inst = emit_i_type_instruction($2, $6, $4, ($1).funct3, ($1).op);
+        // TODO: ensure sign-extended and unsigned are handled appropriately
+        temp_opcode = ($1).op;
+        if (is_load(temp_opcode))
+        {
+           temp_inst = emit_i_type_instruction($2, $6, $4, ($1).funct3, temp_opcode);
+        }
+        else
+        {
+           // immediate is byte-addressable so no need for alignment
+           // TODO: look into word vs halfword distinctions
+           temp_inst = emit_s_type_instruction($6, $2, $4, ($1).funct3, temp_opcode);
+        }
         newElfContent.add_to_text(temp_inst);
 
         ($1).valid = 0;
@@ -300,6 +310,9 @@ ls_opcode:
     | LW    { $$ = {.op = LW_32,    .funct3 = 0x2, .valid = 1}; current_stmt = "lw "; }
     | LBU   { $$ = {.op = LBU_32,   .funct3 = 0x4, .valid = 1}; current_stmt = "lbu "; }
     | LHU   { $$ = {.op = LHU_32,   .funct3 = 0x5, .valid = 1}; current_stmt = "lhu "; }
+    | SB    { $$ = {.op = SB_32,    .funct3 = 0x0, .valid = 1}; current_stmt = "sb "; }
+    | SH    { $$ = {.op = SH_32,    .funct3 = 0x1, .valid = 1}; current_stmt = "sh "; }
+    | SW    { $$ = {.op = SW_32,    .funct3 = 0x2, .valid = 1}; current_stmt = "sw "; }
     ;
 
 register:

@@ -61,12 +61,12 @@ typedef struct stype32_t{
     uint32_t imm_hi: 7;
 
     operator uint32_t() const {
-         return ((imm_hi << 27)|(rs2 << 20) |(rs1 << 15) |(funct3 << 12)|(imm_lo <<7)|opcode);
+         return ((imm_hi << 25) |(rs2 << 20) |(rs1 << 15) | (funct3 << 12) |(imm_lo <<7)| opcode);
     }
 
 } stype32_t;
 
-uint32_t emit_s_type_instruction(unsigned rd, unsigned imm, unsigned opcode);
+uint32_t emit_s_type_instruction(uint32_t rs2, uint32_t rs1, uint32_t imm, uint32_t funct3, uint32_t opcode);
 
 typedef struct utype32_t{
     uint32_t opcode:  7;

@@ -92,3 +92,16 @@ uint32_t emit_j_type_instruction(
 
     return static_cast<uint32_t>(i);
 }
+
+uint32_t emit_s_type_instruction(uint32_t rs2, uint32_t rs1, uint32_t imm, uint32_t funct3, uint32_t opcode)
+{
+    stype32_t i;
+    i.opcode = opcode;
+    i.rs1 = rs1 & 0x1F;
+    i.rs2 = rs2 & 0x1F; 
+    i.imm_lo = imm & 0x1F;
+    i.imm_hi = (imm >> 5) & 0x7F;
+    i.funct3 = funct3 & 0x7;
+
+    return static_cast<uint32_t>(i);
+}

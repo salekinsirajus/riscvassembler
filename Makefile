@@ -13,6 +13,9 @@ PARSE_GEN = riscvass.tab.c
 ENC_GEN = encoding
 ENC_SRC = encoding.cc
 
+OPC_GEN = opcodes
+OPC_SRC = opcodes.cc
+
 LINUX_SRC = linux/elf.cc
 TESTS_DIR = tests
 
@@ -27,8 +30,11 @@ $(LEX_GEN): $(LEX_SRC)
 $(ENC_GEN): $(ENC_SRC)
 	$(CXX) $(CFLAGS) -c $(ENC_SRC) -o $(ENC_GEN)
 
+$(OPC_GEN): $(OPC_SRC)
+	$(CXX) $(CFLAGS) -c $(OPC_SRC) -o $(OPC_GEN)
+
 $(TARGET): $(PARSE_GEN) $(LEX_GEN) $(LINUX_SRC)
-	$(CXX) $(CFLAGS) $(PARSE_GEN) $(LEX_GEN) $(ENC_SRC) $(LINUX_SRC) -o $(TARGET)
+	$(CXX) $(CFLAGS) $(PARSE_GEN) $(LEX_GEN) $(ENC_SRC) $(LINUX_SRC) $(OPC_SRC) -o $(TARGET)
 
 clean:
 	rm -f $(LEX_GEN) $(TARGET) $(PARSE_GEN) $(ENC_GEN) riscvass.tab.h

@@ -1,6 +1,8 @@
 #ifndef OPCODES_H
 #define OPCODES_H
 
+#include <cstdint>
+
 // BASE 32I
 #define LUI_32    0x37
 #define AUIPC_32  0x17
@@ -44,5 +46,7 @@
 #define PAUSE_32  0x0f
 #define ECALL_32  0x73
 #define EBREAK_32 0x73
+
+bool is_load(uint32_t opcode);
 
 #endif // OPCODES_H
