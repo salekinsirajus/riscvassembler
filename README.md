@@ -21,19 +21,12 @@ This will result in an object file called `out.o`. you
 can open it with a hex viewer like `xxd out.o` to see
 the content.
 
-## Work in progress
-- [x] initialize symbol table and string table
-- [x] add entry to the strtab
-- [x] proper offset calculation for section headers
-- [x] add entry to the symtab
-- [x] add instructions to the text section
-- [x] address/ref resolution (single pass.)
-- [x] Expand lexer to recognize all registers x0-x31 
-- [x] Get lexer to recongize all aliases (t0-t6, s0-s11, a0-a7)
-- [x] Implement alias recognition for commonly used registers (ra, sp, gp, tp)
-- [x] Extend immediate parsing to support negative numbers, hexadecimal (0x...), binary (0b...), and larger constants.
-- [x] Implement the ability to add custom output filename
-- [x] Fix the offsets (sign-extension, alignment, rang-check) outside the emit functions
+## IN PROGRESS
+- Ensure the byte-order is followed when writing the ELF file. 
+- Implement an abstraction that can properly encode ELF metadata into a string/file stream
+- Implement proper encoding mechanism for instructions (text section) since it can be different from metadata.
+
+## TODO
 - [ ] Implement a deserialize function for J-type
 - [ ] Implement label/symbol visibility
 - [ ] Add unresolved symbols to rela.text 
