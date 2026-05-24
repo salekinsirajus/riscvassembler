@@ -188,20 +188,23 @@ typedef struct {
 /* ELF Header */
 //from llvm - https://llvm.org/doxygen/BinaryFormat_2ELF_8h_source.html
 typedef struct Elf32_Ehdr {
-  unsigned char e_ident[EI_NIDENT]; // ELF Identification bytes
-  Elf32_Half e_type;                // Type of file (see ET_* below)
-  Elf32_Half e_machine;   // Required architecture for this file (see EM_*)
-  Elf32_Word e_version;   // Must be equal to 1
-  Elf32_Addr e_entry;     // Address to jump to in order to start program
-  Elf32_Off  e_phoff;     // Program header table's file offset, in bytes
-  Elf32_Off  e_shoff;     // Section header table's file offset, in bytes
-  Elf32_Word e_flags;     // Processor-specific flags
-  Elf32_Half e_ehsize;    // Size of ELF header, in bytes
-  Elf32_Half e_phentsize; // Size of an entry in the program header table
-  Elf32_Half e_phnum;     // Number of entries in the program header table
-  Elf32_Half e_shentsize; // Size of an entry in the section header table
-  Elf32_Half e_shnum;     // Number of entries in the section header table
-  Elf32_Half e_shstrndx;  // Sect hdr table index of sect name string table
+  uint8_t e_ident[EI_NIDENT]; // ELF Identification bytes
+  Elf32_Half e_type;          // Type of file (see ET_* below)
+  Elf32_Half e_machine;       // Required architecture for this file (see EM_*)
+  Elf32_Word e_version;       // Must be equal to 1
+  Elf32_Addr e_entry;         // Address to jump to in order to start program
+  Elf32_Off  e_phoff;         // Program header table's file offset, in bytes
+  Elf32_Off  e_shoff;         // Section header table's file offset, in bytes
+  Elf32_Word e_flags;         // Processor-specific flags
+  Elf32_Half e_ehsize;        // Size of ELF header, in bytes
+  Elf32_Half e_phentsize;     // Size of an entry in the program header table
+  Elf32_Half e_phnum;         // Number of entries in the program header table
+  Elf32_Half e_shentsize;     // Size of an entry in the section header table
+  Elf32_Half e_shnum;         // Number of entries in the section header table
+  Elf32_Half e_shstrndx;      // Sect hdr table index of sect name string table
+
+  void serialize(std::ostream &out);
+
 } Elf32_Ehdr;
 
 /* Program Header */

@@ -6,7 +6,27 @@
 #include <string>
 #include <cstdint>
 #include "elf.h"
+#include "../utils.h"
 #include "../encoding.h"
+
+void Elf32_Ehdr::serialize(std::ostream &out)
+{
+    out.write(reinterpret_cast<const char*>(e_ident), EI_NIDENT);
+
+    write_le<Elf32_Half>(out, e_type);
+    write_le<Elf32_Half>(out, e_machine);
+    write_le<Elf32_Word>(out, e_version);
+    write_le<Elf32_Addr>(out, e_entry);
+    write_le<Elf32_Off>(out, e_phoff);
+    write_le<Elf32_Off>(out, e_shoff);
+    write_le<Elf32_Word>(out, e_flags);
+    write_le<Elf32_Half>(out, e_ehsize);
+    write_le<Elf32_Half>(out, e_phentsize);
+    write_le<Elf32_Half>(out, e_phnum);
+    write_le<Elf32_Half>(out, e_shentsize);
+    write_le<Elf32_Half>(out, e_shnum);
+    write_le<Elf32_Half>(out, e_shstrndx);
+}
 
 StringTable::StringTable(void) {
     // Start with a null terminator
@@ -83,8 +103,7 @@ void StringTable::print_content() const {
 }
 
 
-Symtab::Symtab(){
-}
+Symtab::Symtab(){ }
 
 void Symtab::push_back(Elf32_Sym& sym){
     data.push_back(sym);
@@ -254,10 +273,10 @@ void ELF32::init_label(std::string the_label, bool is_global, std::string sectio
 
 void ELF32::update_label_visibility(std::string label, bool is_global)
 {
-	if (label_exists(label))
+    if (label_exists(label))
     {
-		std::cout << "(NYI) go find the label in symtab and update it's visibility" << std::endl;
-	} else
+        std::cout << "(NYI) go find the label in symtab and update it's visibility" << std::endl;
+    } else
     {
         init_label(label, is_global, ".text"); //FIXME: remove hardcoded section_name  
     }
@@ -298,13 +317,11 @@ void ELF32::add_to_unresolved_insns(
     i.insn_type = insn_type;
     i.hash = hash;
 
-	unresolved_instructions.push_back(i);
+    unresolved_instructions.push_back(i);
 }
 
 void ELF32::_resolve_unresolved_instructions()
 {
-    std::cout << "_resolve_unresolved_instr()" << std::endl;
-	std::cout << "resolved_labels: " << std::endl;
     for (auto &pair : resolved_labels){
         std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
     }
@@ -445,7 +462,8 @@ void ELF32::init_elf_header(){
 }
 
 void ELF32::serialize(std::ostream& os){
-    os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
+    //os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
+    elf_header.serialize(os);
     std::streampos pos = os.tellp();
 
     // Add sections
