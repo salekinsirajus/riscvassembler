@@ -477,10 +477,10 @@ void ELF32::serialize(std::ostream& os){
     }
 
     // Add string tables
-    strtab->print_content();
+    //strtab->print_content();
     strtab->serialize(os);
 
-    shstrtab->print_content();
+    //shstrtab->print_content();
     shstrtab->serialize(os);
 
     symtab->serialize(os);
