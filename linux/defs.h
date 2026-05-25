@@ -2,6 +2,7 @@
 #define DEFS_H
 
 #include <cstdint>
+#include <iostream>
 
 #define ELFCLASS32    1
 #define ELFCLASS64    2
@@ -68,6 +69,11 @@ enum : unsigned {
   PF_R = 4,                // Read
   PF_MASKOS = 0x0ff00000,  // Bits for operating system-specific semantics.
   PF_MASKPROC = 0xf0000000 // Bits for processor-specific semantics.
+};
+
+enum byte_order {
+  LE = 0,     // Little-endian
+  BE = 1      // Big-endian
 };
 
 //sh-type definitions
@@ -232,6 +238,8 @@ typedef struct Elf32_Shdr
   Elf32_Word    sh_info;         /* Additional section information */
   Elf32_Word    sh_addralign;    /* Section alignment */
   Elf32_Word    sh_entsize;      /* Entry size if section holds table */
+
+  void serialize(std::ostream &out, byte_order be); 
 } Elf32_Shdr;
 
 #define ELF32_ST_BIND(i) ((i)>>4)

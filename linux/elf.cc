@@ -13,19 +13,33 @@ void Elf32_Ehdr::serialize(std::ostream &out)
 {
     out.write(reinterpret_cast<const char*>(e_ident), EI_NIDENT);
 
-    write_le<Elf32_Half>(out, e_type);
-    write_le<Elf32_Half>(out, e_machine);
-    write_le<Elf32_Word>(out, e_version);
-    write_le<Elf32_Addr>(out, e_entry);
-    write_le<Elf32_Off>(out, e_phoff);
-    write_le<Elf32_Off>(out, e_shoff);
-    write_le<Elf32_Word>(out, e_flags);
-    write_le<Elf32_Half>(out, e_ehsize);
-    write_le<Elf32_Half>(out, e_phentsize);
-    write_le<Elf32_Half>(out, e_phnum);
-    write_le<Elf32_Half>(out, e_shentsize);
-    write_le<Elf32_Half>(out, e_shnum);
-    write_le<Elf32_Half>(out, e_shstrndx);
+    write<Elf32_Half>(out, e_type, LE);
+    write<Elf32_Half>(out, e_machine, LE);
+    write<Elf32_Word>(out, e_version, LE);
+    write<Elf32_Addr>(out, e_entry, LE);
+    write<Elf32_Off>(out, e_phoff, LE);
+    write<Elf32_Off>(out, e_shoff, LE);
+    write<Elf32_Word>(out, e_flags, LE);
+    write<Elf32_Half>(out, e_ehsize, LE);
+    write<Elf32_Half>(out, e_phentsize, LE);
+    write<Elf32_Half>(out, e_phnum, LE);
+    write<Elf32_Half>(out, e_shentsize, LE);
+    write<Elf32_Half>(out, e_shnum, LE);
+    write<Elf32_Half>(out, e_shstrndx, LE);
+}
+
+void Elf32_Shdr::serialize(std::ostream &out, byte_order order)
+{
+    write<Elf32_Word>(out, sh_name, order);
+    write<Elf32_Word>(out, sh_type, order);
+    write<Elf32_Word>(out, sh_flags, order);
+    write<Elf32_Addr>(out, sh_addr, order);
+    write<Elf32_Off>(out, sh_offset, order);
+    write<Elf32_Word>(out, sh_size, order);
+    write<Elf32_Word>(out, sh_link, order);
+    write<Elf32_Word>(out, sh_info, order);
+    write<Elf32_Word>(out, sh_addralign, order);
+    write<Elf32_Word>(out, sh_entsize, order);
 }
 
 StringTable::StringTable(void) {
@@ -462,7 +476,6 @@ void ELF32::init_elf_header(){
 }
 
 void ELF32::serialize(std::ostream& os){
-    //os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
     elf_header.serialize(os);
     std::streampos pos = os.tellp();
 
@@ -488,6 +501,7 @@ void ELF32::serialize(std::ostream& os){
     std::cout << "beginning of the section header here: " << os.tellp() << std::endl;
     elf_header.e_shoff = static_cast<uint32_t>(os.tellp());
     elf_header.e_shnum = section_headers.size();
+    //TODO: write properly
     std::cout << "# of section headers: " << section_headers.size() << std::endl;
 
     // Add an empty header first?
@@ -502,12 +516,14 @@ void ELF32::serialize(std::ostream& os){
         if ((*it)->sh_type == SHT_STRTAB){
             elf_header.e_shstrndx = std::distance(section_headers.begin(), it);
         }
-        os.write(reinterpret_cast<const char*>((*it)), sizeof(Elf32_Shdr));
+
+        (*it)->serialize(os, LE);
         pos += sizeof(Elf32_Shdr);
     }
 
+    //rewrite the ELF header with updated info
     os.seekp(0, std::ios_base::beg);
-    os.write(reinterpret_cast<const char*>(&elf_header), sizeof(Elf32_Ehdr));
+    elf_header.serialize(os);
 }
 
 void write_elf(ELF32& elf, std::string filename) {
