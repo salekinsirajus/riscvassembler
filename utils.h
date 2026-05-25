@@ -5,6 +5,7 @@
 #include "encoding.h"
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 #define MAX_12_BIT_SIGNED  2047  // 2^12 - 1
 #define MIN_12_BIT_SIGNED -2048  // -2^12
@@ -37,16 +38,56 @@ inline void print_instruction(const rtype32_t& instr) {
 	print_instruction_hex(instr);
 }
 
+/**
+ *@brief writes any int types into the `ostream` in a little-endian layout.
+ *@param out a reference to an std::ostream
+ *@param value any int-types you want to serialize
+ */
 template <typename T>
 void write_le(std::ostream &out, T value)
 {
     static_assert(std::is_integral<T>::value, "int type required.");
 
+    typedef typename std::make_unsigned<T>::type UnsignedT;
+    UnsignedT u_value = static_cast<UnsignedT>(value);
+
     unsigned char bytes[sizeof(T)];
-	for (size_t i=0; i< sizeof(T); i++)
+	for (size_t i=0; i<sizeof(T); i++)
     {
-       bytes[i] = (value >> (8 * i)) & 0xFF;
+       bytes[i] = (u_value >> (8 * i)) & 0xFF;
+       // 0xABCDEF01 (LSB at the smallest address: 01 at 0x0)
+       // 0x0: 01
+       // 0x1: EF
+       // 0x2: CD
+       // 0x3: AB
     }
+
+    out.write(reinterpret_cast<const char*>(bytes), sizeof(T));
+}
+
+/**
+ *@brief writes any int types into the `ostream` in a big-endian layout.
+ *@param out a reference to an std::ostream
+ *@param value any int-types you want to serialize
+ */
+template <typename T>
+void write_be(std::ostream &out, T value)
+{
+    static_assert(std::is_integral<T>::value, "int type required.");
+
+    typedef typename std::make_unsigned<T>::type UnsignedT;
+    UnsignedT u_value = static_cast<UnsignedT>(value);
+
+    unsigned char bytes[sizeof(T)];
+	for (size_t i=0; i < sizeof(T); i++)
+    {
+       bytes[sizeof(T)-i-1] = (u_value >> (8 * i)) & 0xFF;
+    }
+    // 0xABCDEF01 (MSB at the smallest address, AB at 0x0)
+    // 0x3 = 01
+    // 0x2 = EF
+    // 0x1 = CD
+    // 0x0 = AB
 
     out.write(reinterpret_cast<const char*>(bytes), sizeof(T));
 }
