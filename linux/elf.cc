@@ -503,7 +503,9 @@ void ELF32::serialize(std::ostream& os){
     for (std::vector<Section *>::iterator it = sections.begin(); it != sections.end(); ++it) {
         pos = os.tellp();
         size_t data_size = ((*it)->data.size() * sizeof(uint32_t));
-        os.write(reinterpret_cast<const char*>((*it)->data.data()), data_size);
+        //os.write(reinterpret_cast<const char*>((*it)->data.data()), data_size);
+        (*it)->serialize(os, LE); 
+        // .text in RISC-V needs to be LE, data could be any. For now, we are doing all LE
         (*it)->header->sh_offset = pos;
         std::cout << "position after section: " << pos << std::endl;
     }

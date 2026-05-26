@@ -3,7 +3,7 @@
 
 #include "defs.h"
 #include "../encoding.h"
-
+#include "../utils.h"
 #include <stdint.h>
 #include <iostream>
 #include <ostream>
@@ -92,6 +92,13 @@ typedef struct Section {
 
         data[idx] = val;
         return 0;
+    }
+
+    void serialize(std::ostream &out, byte_order bo){
+        for (uint32_t x: data)
+        {
+           write<uint32_t>(out, x, bo);
+        } 
     }
 
 } Section;
