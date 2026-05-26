@@ -274,9 +274,11 @@ typedef struct {
     Elf32_Word     st_name;      /* index into the symbol strtab */
     Elf32_Addr     st_value;     /* the value of the associated symbol */
     Elf32_Word     st_size;      /* size in bytes. 0 if unknown or none */
-    unsigned char  st_info;      /* type and binding attributes */
-    unsigned char  st_other;     /* symbol's visibility */
+    uint8_t        st_info;      /* type and binding attributes */
+    uint8_t        st_other;     /* symbol's visibility */
     Elf32_Half     st_shndx;     /* ?? */
+
+    void serialize(std::ostream &out, byte_order bo);
 } Elf32_Sym;
 
 typedef struct {
@@ -286,6 +288,7 @@ typedef struct {
     Elf64_Half     st_shndx;
     Elf64_Addr     st_value;
     Elf64_Xword    st_size;
+    void serialize(std::ostream &out, byte_order bo);
 } Elf64_Sym;
 
 #endif //DEFS_H

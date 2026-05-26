@@ -42,6 +42,16 @@ void Elf32_Shdr::serialize(std::ostream &out, byte_order order)
     write<Elf32_Word>(out, sh_entsize, order);
 }
 
+void Elf32_Sym::serialize(std::ostream &out, byte_order bo)
+{
+    write<Elf32_Word>(out, st_name, bo);
+    write<Elf32_Addr>(out, st_value, bo);
+    write<Elf32_Word>(out, st_size, bo);
+    write<uint8_t>(out, st_info, bo);
+    write<uint8_t>(out, st_other, bo);
+    write<Elf32_Half>(out, st_shndx, bo);
+}
+
 StringTable::StringTable(void) {
     // Start with a null terminator
     content.push_back('\0');
@@ -73,12 +83,17 @@ size_t StringTable::get_size() const {
 }
 
 void StringTable::serialize(std::ostream &os) const {
-    if (!header) throw std::runtime_error("Header not set");
+    if (!header)
+    {
+       throw std::runtime_error("Header not set");
+    }
+
     os.seekp(0, std::ios_base::end); //get to the end
 
     header->sh_offset = static_cast<uint32_t>(os.tellp());
     header->sh_size = get_size();
 
+    //endianness adjustment is not needed for a char 
     os.write(reinterpret_cast<const char*>(content.data()), content.size());
 }
 
@@ -132,7 +147,11 @@ void Symtab::serialize(std::ostream& os){
         printf("size of symtab: %lu\n", data.size());
         header->sh_offset = static_cast<uint32_t>(os.tellp());
         header->sh_size = get_size();
-        os.write(reinterpret_cast<const char*>(data.data()), get_size());
+        for (Elf32_Sym s : data)
+        {
+            s.serialize(os, LE);
+        }
+        //os.write(reinterpret_cast<const char*>(data.data()), get_size());
     }
 }
 

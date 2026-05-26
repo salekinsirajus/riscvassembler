@@ -15,8 +15,7 @@
 #include <string>
 #include <cstring>
 #include <map>
-
-#include <cctype> // for std::isprint
+#include <cctype>
 
 //TODO: move the implementation to a separate file
 class StringTable
