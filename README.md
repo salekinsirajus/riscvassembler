@@ -22,9 +22,7 @@ can open it with a hex viewer like `xxd out.o` to see
 the content.
 
 ## IN PROGRESS
-- Ensure the byte-order is followed when writing the ELF file. 
-- Implement an abstraction that can properly encode ELF metadata into a string/file stream
-- Implement proper encoding mechanism for instructions (text section) since it can be different from metadata.
+- Implement .word, .byte, .half, .long directives for data initialization.
 
 ## TODO
 - [ ] Implement a deserialize function for J-type
