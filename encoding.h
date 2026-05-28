@@ -14,6 +14,9 @@
 
 #define INSTRUCTION_WIDTH sizeof(uint32_t)
 
+// good for n < 64
+#define BIT_MASK(n) ((1ULL << (n)) - 1) 
+
 // Instruction types and details
 //R-type
 typedef struct rtype32_t {
@@ -43,7 +46,7 @@ typedef struct itype32_t{
     uint32_t imm   :12;
 
     operator uint32_t() const {
-        return  ((imm << 20)|(rs1 << 15)|(funct3 << 12) | (rd << 7)| opcode);
+        return ((imm << 20)|(rs1 << 15)|(funct3 << 12) | (rd << 7)| opcode);
     }
 } itype32_t;
 
@@ -64,6 +67,19 @@ typedef struct stype32_t{
          return ((imm_hi << 25) |(rs2 << 20) |(rs1 << 15) | (funct3 << 12) |(imm_lo <<7)| opcode);
     }
 
+    static stype32_t deserialize(uint32_t val){
+        stype32_t i;
+
+        i.opcode = (val      ) & BIT_MASK(7);
+        i.imm_lo = (val >>  7) & BIT_MASK(5);
+        i.funct3 = (val >> 12) & BIT_MASK(3);
+        i.rs1    = (val >> 15) & BIT_MASK(5);
+        i.rs2    = (val >> 20) & BIT_MASK(5);
+        i.imm_hi = (val >> 25) & BIT_MASK(7);
+
+        return i;
+    }
+
 } stype32_t;
 
 uint32_t emit_s_type_instruction(uint32_t rs2, uint32_t rs1, uint32_t imm, uint32_t funct3, uint32_t opcode);
@@ -80,9 +96,9 @@ typedef struct utype32_t{
     static utype32_t deserialize(uint32_t val){
         utype32_t i;
  
-        i.opcode = val & 0x7F; 
-        i.rd     = (val >> 7) & 0x1F;
-        i.imm    = (val >> 12) & 0xFFFFF;
+        i.opcode = (val      ) & BIT_MASK(7); 
+        i.rd     = (val >> 7 ) & BIT_MASK(5);
+        i.imm    = (val >> 12) & BIT_MASK(20);
 
         return i;
     }
@@ -107,14 +123,15 @@ typedef struct btype32_t{
    
     static btype32_t deserialize(uint32_t val) {
         btype32_t i{};
-        i.opcode   = val & 0x7F;                // bits 6:0
-        i.imm11    = (val >> 7) & 0x1;          // bit 7
-        i.imm4_1   = (val >> 8) & 0xF;          // bits 11:8
-        i.funct3   = (val >> 12) & 0x7;         // bits 14:12
-        i.rs1      = (val >> 15) & 0x1F;        // bits 19:15
-        i.rs2      = (val >> 20) & 0x1F;        // bits 24:20
-        i.imm10_5  = (val >> 25) & 0x3F;        // bits 30:25
-        i.imm12    = (val >> 31) & 0x1;         // bit 31
+
+        i.opcode   = (val      ) & BIT_MASK(7);        // bits 6:0
+        i.imm11    = (val >>  7) & BIT_MASK(1);        // bit 7
+        i.imm4_1   = (val >>  8) & BIT_MASK(4);        // bits 11:8
+        i.funct3   = (val >> 12) & BIT_MASK(3);        // bits 14:12
+        i.rs1      = (val >> 15) & BIT_MASK(5);        // bits 19:15
+        i.rs2      = (val >> 20) & BIT_MASK(5);        // bits 24:20
+        i.imm10_5  = (val >> 25) & BIT_MASK(6);        // bits 30:25
+        i.imm12    = (val >> 31) & BIT_MASK(1);        // bit 31
         return i;
     }
 
@@ -145,12 +162,13 @@ typedef struct jtype32_t {
 
     static jtype32_t deserialize(uint32_t val){
         jtype32_t i{};
-        i.opcode   = (val >>  0) & 0x7F;
-        i.rd       = (val >>  7) & 0x1F;
-        i.imm12_19 = (val >> 12) & 0xFF;
-        i.imm11    = (val >> 20) & 0x1;
-        i.imm1_10  = (val >> 21) & 0x3FF;
-        i.imm20    = (val >> 31) & 0x1;
+
+        i.opcode   = (val >>  0) & BIT_MASK(7);
+        i.rd       = (val >>  7) & BIT_MASK(5);
+        i.imm12_19 = (val >> 12) & BIT_MASK(8);
+        i.imm11    = (val >> 20) & BIT_MASK(1);
+        i.imm1_10  = (val >> 21) & BIT_MASK(10);
+        i.imm20    = (val >> 31) & BIT_MASK(1);
 
         return i;
     }
