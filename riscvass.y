@@ -191,7 +191,7 @@ instruction:
         {
            // immediate is byte-addressable so no need for alignment
            // TODO: look into word vs halfword distinctions
-           temp_inst = emit_s_type_instruction($6, $2, $4, ($1).funct3, temp_opcode);
+           temp_inst = emit_s_type_instruction($2, $6, $4, ($1).funct3, temp_opcode);
         }
         newElfContent.add_to_text(temp_inst);
 
