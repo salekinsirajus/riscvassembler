@@ -22,10 +22,9 @@ can open it with a hex viewer like `xxd out.o` to see
 the content.
 
 ## IN PROGRESS
-- Implement .word, .byte, .half, .long directives for data initialization.
+- [ ] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
 
 ## TODO
-- [ ] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
 - [ ] Refactor StringTable so that it always stays in a valid state
 - [ ] Refactor ELF32 serialization to correctly update offsets, sizes, and section headers dynamically.
 - [ ] Add unresolved symbols to rela.text 
