@@ -25,30 +25,32 @@ the content.
 - Implement .word, .byte, .half, .long directives for data initialization.
 
 ## TODO
-- [ ] Implement a deserialize function for J-type
-- [ ] Implement label/symbol visibility
+- [ ] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
+- [ ] Refactor StringTable so that it always stays in a valid state
+- [ ] Refactor ELF32 serialization to correctly update offsets, sizes, and section headers dynamically.
 - [ ] Add unresolved symbols to rela.text 
-- [ ] implement full RV32I instruction coverage (LUI, AUIPC, JALR, all arithmetic, shifts, branches, loads/stores).
-- [ ] Implement proper pseudo-instruction expansion to multiple actual instructions (e.g., LI → LUI+ADDI).
-- [ ] Implement .bss section with proper ELF flags and handling of uninitialized data.
-- [ ] Implement .rodata section for read-only data
 - [ ] Implement .word, .byte, .half, .long directives for data initialization.
 - [ ] Implement .align directive for section alignment.
+- [ ] Implement label/symbol visibility
+- [ ] implement full RV32I instruction coverage (LUI, AUIPC, JALR, all arithmetic, shifts, branches, loads/stores).
+- [ ] Implement pseudo-instructions: LI, LA, NEG, NOT, SEQZ, SNEZ, SGTZ, etc.
+- [ ] Implement proper pseudo-instruction expansion to multiple actual instructions (e.g., LI → LUI+ADDI).
+- [ ] verify proper handling of branch offsets for B-type and J-type instructions.
+- [ ] Implement a deserialize function for J-type
+- [ ] Carve out a space for adding custom instruction
+- [ ] Implement .bss section with proper ELF flags and handling of uninitialized data.
+- [ ] Implement .rodata section for read-only data
 - [ ] Implement .comm and .size directives.
 - [ ] Implement .equ/.set directives for defining constants.
 - [ ] Extend label handling to support multiple sections (text, data, rodata, bss).
-- [ ] Implement pseudo-instructions: LI, LA, NEG, NOT, SEQZ, SNEZ, SGTZ, etc.
-- [ ] Implement macro (?)
-- [ ] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
 - [ ] Implement arithmetic expressions for immediates and label offsets.
 - [ ] Implement proper handling of global vs local symbols in the symbol table.
-- [x] Improve error handling with line numbers, semantic checks
 - [ ] Improve error handling with warnings for undefined symbols.
 - [ ] Add logging/debugging support for unresolved instructions and symbol resolution.
 - [ ] Refactor error reporting/debug mode with multiple output streams so they can be turned on or off as needed
 - [ ] add a test suite and example output files
 - [ ] Implement ECALL and system instruction handling fully with proper encoding.
 - [ ] Add support for forward-declared labels in data sections.
-- [ ] Refactor ELF32 serialization to correctly update offsets, sizes, and section headers dynamically.
-- [ ] verify proper handling of branch offsets for B-type and J-type instructions.
 - [ ] Add support for effectively required extensions
+- [ ] Spike: consider adding a middle layer/IR/AST between Parsing and Codegen
+- [ ] Implement macro (?)
