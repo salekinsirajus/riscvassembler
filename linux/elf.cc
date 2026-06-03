@@ -53,16 +53,30 @@ void Elf32_Sym::serialize(std::ostream &out, byte_order bo)
 }
 
 StringTable::StringTable(void) {
-    // Start with a null terminator
-    content.push_back('\0');
+    init_table();
+}
+
+void StringTable::init_table(){
+    if (content.empty()){
+       content.push_back('\0');
+    }
 }
 
 size_t StringTable::add_string(const char* str) {
     if (!str) throw std::invalid_argument("Null string passed");
 
-    // Insert before the final null terminator
-    size_t offset = content.size() - 1;
-    size_t len = std::strlen(str);
+    size_t offset;
+    size_t begin;
+	size_t len = std::strlen(str);
+
+    // special case for empty table
+    if (content.size() < 2){
+        offset = 1;
+        content.insert(content.end(), '\0');
+    }
+    else {
+        offset = content.size() - 1;
+    }
 
     content.insert(content.end() - 1, str, str + len);
     content.insert(content.end() - 1, '\0');
@@ -237,6 +251,8 @@ void ELF32::init_data_section(){
 void ELF32::init_strtables(){
     Elf32_Shdr* sh_strtab = new Elf32_Shdr();
     Elf32_Shdr* sh_shstrtab = new Elf32_Shdr();
+    this->header_shstrtab = sh_shstrtab;  // saving it
+
     strtab = new StringTable();
     shstrtab = new StringTable();
 
@@ -265,6 +281,7 @@ size_t ELF32::store_section_name(std::string name){
     size_t offset = shstrtab->add_string(name.c_str());
     shstrtab->header->sh_size = shstrtab->get_size();
 
+    //std::cout << "storing section name for `" << name << "` at " << offset << std::endl; 
     return offset;
 }
 
@@ -455,16 +472,6 @@ void ELF32::add_variable_to_symtab(
     symtab->header->sh_size += sizeof(Elf32_Sym);
 }
 
-void ELF32::update_elf_header(){
-    // thigns to update:
-    // - section header table offset
-    // - e_phnum number of program headers
-    // - e_shnum number pf section headers
-    // - s_shstrndx section header string index
-    elf_header.e_shoff = 1000; // FIXME section header table's file offset in bytes
-    elf_header.e_shnum = 2;    // update this every time a new section is added
-}
-
 void ELF32::init_elf_header(){
     memset(&elf_header, 0, sizeof(elf_header));
 
@@ -488,9 +495,9 @@ void ELF32::init_elf_header(){
     elf_header.e_phentsize =                  0; // size of 1 entry in prog header table.
     elf_header.e_shentsize = sizeof(Elf32_Shdr); // Section header table entry size in bytes.
 
-    elf_header.e_phnum = 0;          // TODO: Number of program headers
-    elf_header.e_shnum = 0;          // TODO: number of entries in the section header table
-    elf_header.e_shstrndx = 0;       // TODO: Section header string index??
+    elf_header.e_phnum = 0;          // Number of program headers (should be always zero)
+    elf_header.e_shnum = 0;          // number of entries in the section header table
+    elf_header.e_shstrndx = 0;       // index for string table that contains section names
     //section header table index of the entry associated with the section name string table.
 }
 
@@ -534,8 +541,9 @@ void ELF32::serialize(std::ostream& os){
         std::cout << "sh_name: " << (*it)->sh_name
                   << ", sh_size: " << (*it)->sh_size
                   << ", sh_offset: " << std::hex << (*it)->sh_offset << std::endl;
-        if ((*it)->sh_type == SHT_STRTAB){
+        if ((*it)->sh_type == SHT_STRTAB && *it == this->header_shstrtab){
             elf_header.e_shstrndx = std::distance(section_headers.begin(), it);
+            std::cout << "e_shstrndx: " << elf_header.e_shstrndx << std::endl;
         }
 
         (*it)->serialize(os, LE);

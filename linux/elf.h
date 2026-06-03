@@ -41,6 +41,8 @@ public:
     // Debugging aid
     void print_content() const;
 
+    void init_table();
+
     Elf32_Shdr* header;
 
 private:
@@ -180,6 +182,7 @@ class ELF32
         Elf32_Ehdr elf_header;                     /* ELF File Header        */
 
         std::vector<Elf32_Shdr *> section_headers; /* Section Headers (req)  */
+        Elf32_Shdr*               header_shstrtab; /* ptr to shstrtab sec hdr*/
         std::vector<Section *>    sections;        /* Section ptrs           */
 
         Section                   *sec_data;
