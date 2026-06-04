@@ -191,8 +191,10 @@ void ELF32::init_symtab(){
 
     sh->sh_size = 0;
     sh->sh_type = SHT_SYMTAB;
+    sh->sh_flags = 0;
+
+    /* ref: https://refspecs.linuxfoundation.org/LSB_2.1.0/LSB-Core-generic/LSB-Core-generic/specialsections.html */
     sh->sh_entsize = sizeof(Elf32_Sym);
-    //sh->sh_flag = SHF_ALLOC; // TODO: confirm this
 
     sh->sh_name = store_section_name(section_name);
     sh->sh_link = 1; // FIXME: sh idx of whichever string table
