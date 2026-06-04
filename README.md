@@ -1,6 +1,6 @@
 # RISC-V Assembler
 A reference assembler for RISC-V backend. Primarily for learning
-and hacking. Implements the grammar described in the 
+and hacking. Implements the grammar described in the
 [riscv-asm-manual](https://github.com/riscv-non-isa/riscv-asm-manual/blob/main/src/asm-manual.adoc).
 ELF spec reference is [here](https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc).
 
@@ -22,12 +22,15 @@ can open it with a hex viewer like `xxd out.o` to see
 the content.
 
 ## IN PROGRESS
-- [ ] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
+- [x] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
+- [ ] String literals are going into string tables.
+   - Implement a mechanism to find the right section
+   - Make sure an a string literal needed during runtimg goes into either .data or .rodata
 
 ## TODO
 - [ ] Refactor StringTable so that it always stays in a valid state
 - [ ] Refactor ELF32 serialization to correctly update offsets, sizes, and section headers dynamically.
-- [ ] Add unresolved symbols to rela.text 
+- [ ] Add unresolved symbols to rela.text
 - [ ] Implement .word, .byte, .half, .long directives for data initialization.
 - [ ] Implement .align directive for section alignment.
 - [ ] Implement label/symbol visibility
