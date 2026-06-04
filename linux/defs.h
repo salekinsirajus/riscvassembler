@@ -77,24 +77,24 @@ enum byte_order {
 };
 
 //sh-type definitions
-#define SHT_NULL                0        /* Section header table entry unused */
-#define SHT_PROGBITS            1        /* Program data */
-#define SHT_SYMTAB              2        /* Symbol table */
-#define SHT_STRTAB              3        /* String table */
-#define SHT_RELA                4        /* Relocation entries with addends */
-#define SHT_HASH                5        /* Symbol hash table */
-#define SHT_DYNAMIC             6        /* Dynamic linking information */
-#define SHT_NOTE                7        /* Notes */
-#define SHT_NOBITS              8        /* Program space with no data (bss) */
-#define SHT_REL                 9        /* Relocation entries, no addends */
-#define SHT_SHLIB              10        /* Reserved */
-#define SHT_DYNSYM             11        /* Dynamic linker symbol table */
-#define SHT_INIT_ARRAY         14        /* Array of constructors */
-#define SHT_FINI_ARRAY         15        /* Array of destructors */
-#define SHT_PREINIT_ARRAY      16        /* Array of pre-constructors */
-#define SHT_GROUP              17        /* Section group */
-#define SHT_SYMTAB_SHNDX       18        /* Extended section indeces */
-#define SHT_NUM                19        /* Number of defined types.  */
+#define SHT_NULL                    0    /* Section header table entry unused */
+#define SHT_PROGBITS                1    /* Program data */
+#define SHT_SYMTAB                  2    /* Symbol table */
+#define SHT_STRTAB                  3    /* String table */
+#define SHT_RELA                    4    /* Relocation entries with addends */
+#define SHT_HASH                    5    /* Symbol hash table */
+#define SHT_DYNAMIC                 6    /* Dynamic linking information */
+#define SHT_NOTE                    7    /* Notes */
+#define SHT_NOBITS                  8    /* Program space with no data (bss) */
+#define SHT_REL                     9    /* Relocation entries, no addends */
+#define SHT_SHLIB                  10    /* Reserved */
+#define SHT_DYNSYM                 11    /* Dynamic linker symbol table */
+#define SHT_INIT_ARRAY             14    /* Array of constructors */
+#define SHT_FINI_ARRAY             15    /* Array of destructors */
+#define SHT_PREINIT_ARRAY          16    /* Array of pre-constructors */
+#define SHT_GROUP                  17    /* Section group */
+#define SHT_SYMTAB_SHNDX           18    /* Extended section indeces */
+#define SHT_NUM                    19    /* Number of defined types.  */
 #define SHT_LOOS           0x60000000    /* Start OS-specific.  */
 #define SHT_GNU_ATTRIBUTES 0x6ffffff5    /* Object attributes.  */
 #define SHT_GNU_HASH       0x6ffffff6    /* GNU-style hash table.  */
@@ -180,34 +180,34 @@ typedef struct {
 
 /* Program Header */
 typedef struct {
-    uint32_t p_type;    /* Type of segment */
-    uint32_t p_flags;   /* Segment attributes */
-    uint64_t p_offset;  /* Offset in file */
-    uint64_t p_vaddr;   /* Virtual address in memory */
-    uint64_t p_paddr;   /* Physical address (not used) */
-    uint64_t p_filesz;  /* Size of segment in file */
-    uint64_t p_memsz;   /* Size of segment in memory */
-    uint64_t p_align;   /* Alignment of segment */
+    uint32_t p_type;               /* Type of segment */
+    uint32_t p_flags;              /* Segment attributes */
+    uint64_t p_offset;             /* Offset in file */
+    uint64_t p_vaddr;              /* Virtual address in memory */
+    uint64_t p_paddr;              /* Physical address (not used) */
+    uint64_t p_filesz;             /* Size of segment in file */
+    uint64_t p_memsz;              /* Size of segment in memory */
+    uint64_t p_align;              /* Alignment of segment */
 } Elf64_Phdr;
 
 /* for 32-bit */
 /* ELF Header */
 //from llvm - https://llvm.org/doxygen/BinaryFormat_2ELF_8h_source.html
 typedef struct Elf32_Ehdr {
-  uint8_t e_ident[EI_NIDENT]; // ELF Identification bytes
-  Elf32_Half e_type;          // Type of file (see ET_* below)
-  Elf32_Half e_machine;       // Required architecture for this file (see EM_*)
-  Elf32_Word e_version;       // Must be equal to 1
-  Elf32_Addr e_entry;         // Address to jump to in order to start program
-  Elf32_Off  e_phoff;         // Program header table's file offset, in bytes
-  Elf32_Off  e_shoff;         // Section header table's file offset, in bytes
-  Elf32_Word e_flags;         // Processor-specific flags
-  Elf32_Half e_ehsize;        // Size of ELF header, in bytes
-  Elf32_Half e_phentsize;     // Size of an entry in the program header table
-  Elf32_Half e_phnum;         // Number of entries in the program header table
-  Elf32_Half e_shentsize;     // Size of an entry in the section header table
-  Elf32_Half e_shnum;         // Number of entries in the section header table
-  Elf32_Half e_shstrndx;      // Sect hdr table index of sect name string table
+  uint8_t e_ident[EI_NIDENT];      /* ELF Identification bytes */
+  Elf32_Half e_type;               /* Type of file (see ET_* below) */
+  Elf32_Half e_machine;            /* Required architecture for this file (see EM_*) */
+  Elf32_Word e_version;            /* Must be equal to 1 */
+  Elf32_Addr e_entry;              /* Address to jump to in order to start program */
+  Elf32_Off  e_phoff;              /* Program header table's file offset, in bytes */
+  Elf32_Off  e_shoff;              /* Section header table's file offset, in bytes */ 
+  Elf32_Word e_flags;              /* Processor-specific flags */ 
+  Elf32_Half e_ehsize;             /* Size of ELF header, in bytes */
+  Elf32_Half e_phentsize;          /* Size of an entry in the program header table */
+  Elf32_Half e_phnum;              /* Number of entries in the program header table */
+  Elf32_Half e_shentsize;          /* Size of an entry in the section header table */
+  Elf32_Half e_shnum;              /* Number of entries in the section header table */
+  Elf32_Half e_shstrndx;           /* Sect hdr table index of sect name string table */
 
   void serialize(std::ostream &out);
 
@@ -236,7 +236,7 @@ typedef struct Elf32_Shdr
   Elf32_Word    sh_size;         /* Section size in bytes */
   Elf32_Word    sh_link;         /* Link to another section */
   Elf32_Word    sh_info;         /* Additional section information */
-  Elf32_Word    sh_addralign;    /* Section alignment */
+  Elf32_Word    sh_addralign;    /* address alignment constraints */
   Elf32_Word    sh_entsize;      /* Entry size if section holds table */
 
   void serialize(std::ostream &out, byte_order be); 
@@ -252,7 +252,7 @@ typedef struct Elf32_Shdr
 #define STB_HIPROC 13
 #define STB_LOPROC 15
 
-// Symbole Types
+// Symbol Types
 #define STT_NOTYPE   0
 #define STT_OBJECT   1
 #define STT_FUNC     2
