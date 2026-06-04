@@ -218,6 +218,8 @@ void ELF32::init_text_section(){
 
     Elf32_Shdr* sh = new Elf32_Shdr();
     sh->sh_type = SHT_PROGBITS;
+    sh->sh_flags = SHF_ALLOC | SHF_EXECINSTR; // is this correct?
+
     sec_text = text;
     sec_text->header = sh;
 
