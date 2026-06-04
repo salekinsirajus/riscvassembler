@@ -242,6 +242,8 @@ void ELF32::init_data_section(){
 
     Elf32_Shdr* sh = new Elf32_Shdr();
     sh->sh_type = SHT_PROGBITS;
+    sh->sh_flags = SHF_ALLOC | SHF_WRITE;
+
     sec_data = data;
     sec_data->header = sh;
 
