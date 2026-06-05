@@ -143,6 +143,7 @@ directive:
     | D_ASCII STRING
     {
         std::cout << ".ascii STRING: " << currentLabel << std::endl;
+        std::cout << "Should be saved to section: " << currentSection << std::endl;
         temp_value = $2;
     }
     ;

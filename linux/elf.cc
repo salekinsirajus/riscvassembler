@@ -88,10 +88,6 @@ const char* StringTable::get_string(size_t offset) const {
     return &content[offset];
 }
 
-const char* StringTable::get_all() const {
-    return content.data();
-}
-
 size_t StringTable::get_size() const {
     return content.size();
 }
@@ -447,9 +443,9 @@ size_t ELF32::get_next_insn_number(std::string section){
     return 0;
 }
 
+// Eventually phase this out as well
 void ELF32::add_to_text(uint32_t instr){
-    sec_text->data.push_back(instr);
-    sec_text->header->sh_size += sizeof(instr);
+    sec_text->push(instr);
 }
 
 void ELF32::add_to_data(){
@@ -515,8 +511,6 @@ void ELF32::serialize(std::ostream& os){
     std::cout << "# of sections: " << sections.size() << std::endl;
     for (std::vector<Section *>::iterator it = sections.begin(); it != sections.end(); ++it) {
         pos = os.tellp();
-        size_t data_size = ((*it)->data.size() * sizeof(uint32_t));
-        //os.write(reinterpret_cast<const char*>((*it)->data.data()), data_size);
         (*it)->serialize(os, LE); 
         // .text in RISC-V needs to be LE, data could be any. For now, we are doing all LE
         (*it)->header->sh_offset = pos;

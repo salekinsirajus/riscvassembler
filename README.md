@@ -22,10 +22,8 @@ can open it with a hex viewer like `xxd out.o` to see
 the content.
 
 ## IN PROGRESS
-- [x] Update ELF header fields dynamically: `e_shnum`, `e_shstrndx`, `e_shoff`, and section flags.
-- [ ] String literals are going into string tables.
-   - Implement a mechanism to find the right section
-   - Make sure an a string literal needed during runtimg goes into either .data or .rodata
+- [ ] Refactor Sections, string tables and symbol tables to inherit from the same section class
+- [ ] Make sure an a string literal needed during runtimg goes into either .data or .rodata
 
 ## TODO
 - [ ] Refactor StringTable so that it always stays in a valid state

@@ -29,9 +29,6 @@ public:
     // Access string at offset
     const char* get_string(size_t offset) const;
 
-    // Returns entire string table buffer
-    const char* get_all() const;
-
     // Returns total size including both nulls
     size_t get_size() const;
 
@@ -65,45 +62,59 @@ private:
      std::vector<Elf32_Sym> data;
 };
 
-typedef struct Section {
-    std::vector<uint32_t> data;
-    uint32_t            offset;
-    Elf32_Shdr         *header;
+class Section {
+    public:
+        uint32_t            offset;
+        Elf32_Shdr         *header;
 
-    // returns the size of the section in bytes
-    size_t size() const {
-        return data.size() * sizeof(uint32_t);
-    }
+        // returns the size of the section in bytes
+        size_t size_in_bytes() const {
+            return data.size() * sizeof(uint32_t);
+        }
 
-    int last_index() const {
-        return data.size() - 1;
-    }
+        int last_index() const {
+            return data.size() - 1;
+        }
  
-    uint32_t next_index() const {
-        return data.size();
-    }
+        uint32_t next_index() const {
+            return data.size();
+        }
 
-    uint32_t get_entry(size_t idx){
-        if (idx >= data.size() || idx < 0) return 0xFFFFFFFF;
+        uint32_t get_entry(size_t idx){
+            if (idx >= data.size() || idx < 0) return 0xFFFFFFFF;
 
-        return data[idx];
-    }
+            return data[idx];
+        }
 
-    int32_t update_entry(size_t idx, uint32_t val){
-        if (idx >= data.size() || idx < 0) return -1;
+        bool update_entry(size_t idx, uint32_t val){
+            if (idx >= data.size() || idx < 0){
+                return false;
+            }
 
-        data[idx] = val;
-        return 0;
-    }
+            data[idx] = val;
+            return true;
+        }
 
-    void serialize(std::ostream &out, byte_order bo){
-        for (uint32_t x: data)
-        {
-           write<uint32_t>(out, x, bo);
-        } 
-    }
+        /* at the end */
+        bool push(uint32_t entry) {
+            // TODO: templatize this
+            data.push_back(entry);
+            header->sh_size += sizeof(entry);
+        }
 
-} Section;
+        /* at a specific location */
+        bool insert(size_t idx);
+
+        void serialize(std::ostream &out, byte_order bo){
+            for (uint32_t x: data)
+            {
+               write<uint32_t>(out, x, bo);
+            } 
+        }
+
+    private:
+        std::vector<uint32_t> data;
+};
 
 // what we need for the assembler and what we dont need
 // Relocatable object files do not need a program header table. (solaris)
@@ -150,7 +161,12 @@ class ELF32
         size_t get_next_insn_number(std::string section);
 
         void _resolve_unresolved_instructions();
-        void add_to_unresolved_insns(int32_t insn_number, RISCV32_INST_TYPE insn_type, uint32_t hash, uint32_t pc_insn_number);
+        void add_to_unresolved_insns(
+            int32_t insn_number, 
+            RISCV32_INST_TYPE insn_type, 
+            uint32_t hash, 
+            uint32_t pc_insn_number
+        );
         void add_to_text(uint32_t);
         void add_to_data();
         void add_to_symtab(Elf32_Sym& symbol);
