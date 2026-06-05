@@ -1,3 +1,4 @@
 lex.yy.c
 *.tab.c
 *.tab.h
+build/objects/*

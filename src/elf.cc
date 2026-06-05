@@ -5,9 +5,10 @@
 #include <cstring>
 #include <string>
 #include <cstdint>
+
 #include "elf.h"
-#include "../utils.h"
-#include "../encoding.h"
+#include "utils.h"
+#include "encoding.h"
 
 void Elf32_Ehdr::serialize(std::ostream &out)
 {

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "encoding.h"
-#include "linux/defs.h"
+#include "defs.h"
 #include <iostream>
 #include <string>
 #include <type_traits>

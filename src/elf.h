@@ -1,10 +1,7 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include "defs.h"
-#include "../encoding.h"
-#include "../utils.h"
-#include <stdint.h>
+#include <cstdint>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -16,6 +13,11 @@
 #include <cstring>
 #include <map>
 #include <cctype>
+
+#include "defs.h"
+#include "encoding.h"
+#include "utils.h"
+#include "section.h"
 
 //TODO: move the implementation to a separate file
 class StringTable
@@ -60,60 +62,6 @@ public:
 
 private:
      std::vector<Elf32_Sym> data;
-};
-
-class Section {
-    public:
-        uint32_t            offset;
-        Elf32_Shdr         *header;
-
-        // returns the size of the section in bytes
-        size_t size_in_bytes() const {
-            return data.size() * sizeof(uint32_t);
-        }
-
-        int last_index() const {
-            return data.size() - 1;
-        }
- 
-        uint32_t next_index() const {
-            return data.size();
-        }
-
-        uint32_t get_entry(size_t idx){
-            if (idx >= data.size() || idx < 0) return 0xFFFFFFFF;
-
-            return data[idx];
-        }
-
-        bool update_entry(size_t idx, uint32_t val){
-            if (idx >= data.size() || idx < 0){
-                return false;
-            }
-
-            data[idx] = val;
-            return true;
-        }
-
-        /* at the end */
-        bool push(uint32_t entry) {
-            // TODO: templatize this
-            data.push_back(entry);
-            header->sh_size += sizeof(entry);
-        }
-
-        /* at a specific location */
-        bool insert(size_t idx);
-
-        void serialize(std::ostream &out, byte_order bo){
-            for (uint32_t x: data)
-            {
-               write<uint32_t>(out, x, bo);
-            } 
-        }
-
-    private:
-        std::vector<uint32_t> data;
 };
 
 // what we need for the assembler and what we dont need

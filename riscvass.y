@@ -3,10 +3,10 @@
     // for bison
     #include <stdio.h>
     #include <iostream>
-    #include "opcodes.h"
-    #include "encoding.h"
-    #include "utils.h"
-    #include "linux/elf.h"
+    #include "src/opcodes.h"
+    #include "src/encoding.h"
+    #include "src/utils.h"
+    #include "src/elf.h"
 
     using namespace std;
 

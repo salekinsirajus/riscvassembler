@@ -10,17 +10,11 @@ PARSE = bison
 PARSE_SRC = riscvass.y
 PARSE_GEN = riscvass.tab.c
 
-ENC_GEN = encoding
-ENC_SRC = encoding.cc
-
-OPC_GEN = opcodes
-OPC_SRC = opcodes.cc
-
-UTIL_GEN = utils
-UTIL_SRC = utils.cc
-
-LINUX_SRC = linux/elf.cc
 TESTS_DIR = tests
+
+SRC_DIR = src
+BUILD_DIR = build
+OBJ_DIR = build/objects
 
 all: $(TARGET)
 
@@ -30,17 +24,11 @@ $(PARSE_GEN): $(PARSE_SRC)
 $(LEX_GEN): $(LEX_SRC)
 	$(LEX) $(LEX_SRC)
 
-$(ENC_GEN): $(ENC_SRC)
-	$(CXX) $(CFLAGS) -c $(ENC_SRC) -o $(ENC_GEN)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
+	$(CXX) $(CFLAGS) -c $< -o $@
 
-$(OPC_GEN): $(OPC_SRC)
-	$(CXX) $(CFLAGS) -c $(OPC_SRC) -o $(OPC_GEN)
-
-$(UTIL_GEN): $(UTIL_SRC)
-	$(CXX) $(CFLAGS) -c $(UTIL_SRC) -o $(UTIL_GEN)
-
-$(TARGET): $(PARSE_GEN) $(LEX_GEN) $(LINUX_SRC)
-	$(CXX) $(CFLAGS) $(PARSE_GEN) $(LEX_GEN) $(ENC_SRC) $(LINUX_SRC) $(OPC_SRC) $(UTIL_SRC) -o $(TARGET)
+$(TARGET): $(PARSE_GEN) $(LEX_GEN) $(OBJ_DIR)/*.o
+	$(CXX) $(CFLAGS) $(PARSE_GEN) $(LEX_GEN) $(SRC_DIR)/*.cc -o $(TARGET)
 
 clean:
 	rm -f $(LEX_GEN) $(TARGET) $(PARSE_GEN) $(ENC_GEN) riscvass.tab.h
