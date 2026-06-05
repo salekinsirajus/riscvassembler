@@ -24,10 +24,10 @@ $(PARSE_GEN): $(PARSE_SRC)
 $(LEX_GEN): $(LEX_SRC)
 	$(LEX) $(LEX_SRC)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
+$(OBJ_DIR)/*.o: $(SRC_DIR)/*.cc
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(PARSE_GEN) $(LEX_GEN) $(OBJ_DIR)/*.o
+$(TARGET): $(PARSE_GEN) $(LEX_GEN)
 	$(CXX) $(CFLAGS) $(PARSE_GEN) $(LEX_GEN) $(SRC_DIR)/*.cc -o $(TARGET)
 
 clean:
