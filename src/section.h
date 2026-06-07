@@ -1,35 +1,74 @@
-#include <cstdint>
-#include <vector>
-#include <iostream>
+#pragma once
+
 #include "defs.h"
 #include "utils.h"
+#include <cstdint>
+#include <iostream>
+#include <vector>
 
-// TODO: templatize so it can be used for 64-bit as well
-class Section {
-    public:
-        uint32_t            offset;
-        Elf32_Shdr         *header;
+class SectionBase {
+public:
+  Elf32_Shdr *header;
+  virtual size_t size_in_bytes() const = 0;
+  virtual void serialize(std::ostream &, byte_order bo) = 0;
+};
 
-        // returns the size of the section in bytes
-        size_t size_in_bytes() const;
+template <typename T> class Section : public SectionBase {
+public:
+  size_t offset;
 
-        size_t last_index() const;
- 
-        size_t next_index() const;
+  /* returns the size of the section in bytes */
+  size_t size_in_bytes() const { return data.size() * sizeof(T); }
 
-        // TODO: use a bool/flag to signal success or failure
-        uint32_t get_entry(size_t idx);
+  /* gets the index of the last entry */
+  size_t last_index() const {
+    if (data.size() > 0) {
+      return data.size() - 1;
+    }
 
-        bool update_entry(size_t idx, uint32_t val);
+    return 0;
+  }
 
-        /* at the end */
-        bool push(uint32_t entry);
+  /* gets the (would be) index of the next entry */
+  size_t next_index() const { return data.size(); }
 
-        /* at a specific location */
-        bool insert(size_t idx, uint32_t value);
+  /* @brief: get entry at index
+   * @param size_t idx the index of the entry
+   * @returns uint32_t the entry at that index
+   */
+  bool get_entry(size_t idx, T &val) {
+    if (idx >= data.size() || idx < 0)
+      return false;
 
-        void serialize(std::ostream &out, byte_order bo);
+    val = data[idx];
+    return true;
+  }
 
-    private:
-        std::vector<uint32_t> data;
+  // should be deprecated in favor of push
+  bool update_entry(size_t idx, T val) {
+    if (idx >= data.size() || idx < 0) {
+      return false;
+    }
+    data[idx] = val;
+    return true;
+  }
+
+  /* at the end */
+  bool push(T entry) {
+    data.push_back(entry);
+    header->sh_size += sizeof(entry);
+  }
+
+  /* at a specific location */
+  bool insert(size_t idx, T value) { return update_entry(idx, value); }
+
+  // void serialize(std::ostream& os, byte_order bo)
+  //{
+  //     for (T t: data)
+  //     {
+  //        t.serialize(os, bo);
+  //     }
+  // }
+private:
+  std::vector<T> data;
 };

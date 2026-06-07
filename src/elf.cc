@@ -53,119 +53,6 @@ void Elf32_Sym::serialize(std::ostream &out, byte_order bo)
     write<Elf32_Half>(out, st_shndx, bo);
 }
 
-StringTable::StringTable(void) {
-    init_table();
-}
-
-void StringTable::init_table(){
-    if (content.empty()){
-       content.push_back('\0');
-    }
-}
-
-size_t StringTable::add_string(const char* str) {
-    if (!str) throw std::invalid_argument("Null string passed");
-
-    size_t offset;
-    size_t begin;
-	size_t len = std::strlen(str);
-
-    // special case for empty table
-    if (content.size() < 2){
-        offset = 1;
-        content.insert(content.end(), '\0');
-    }
-    else {
-        offset = content.size() - 1;
-    }
-
-    content.insert(content.end() - 1, str, str + len);
-    content.insert(content.end() - 1, '\0');
-
-    return offset;
-}
-const char* StringTable::get_string(size_t offset) const {
-    if (offset >= content.size()) throw std::out_of_range("Offset out of bounds");
-    return &content[offset];
-}
-
-size_t StringTable::get_size() const {
-    return content.size();
-}
-
-void StringTable::serialize(std::ostream &os) const {
-    if (!header)
-    {
-       throw std::runtime_error("Header not set");
-    }
-
-    os.seekp(0, std::ios_base::end); //get to the end
-
-    header->sh_offset = static_cast<uint32_t>(os.tellp());
-    header->sh_size = get_size();
-
-    //endianness adjustment is not needed for a char 
-    os.write(reinterpret_cast<const char*>(content.data()), content.size());
-}
-
-void StringTable::print_content() const {
-    const size_t columns = 10;
-    size_t size = content.size();
-
-    // Print column headers
-    printf("\n========= strtab (size: %zu) =========\n", size);
-    printf("Offset |");
-    for (size_t col = 0; col < columns; ++col) {
-        printf(" %zu ", col);
-    }
-    printf("\n-------+------------------------------\n");
-
-    // Print content in rows of 10
-    for (size_t i = 0; i < size; i += columns) {
-        printf("%06zu |", i);  // Offset
-
-        for (size_t j = 0; j < columns; ++j) {
-            if (i + j < size) {
-                char c = content[i + j];
-                if (std::isprint(static_cast<unsigned char>(c))) {
-                    printf(" %c ", c);
-                } else {
-                    printf(" . ");
-                }
-            } else {
-                printf("   "); // Blank for missing cells
-            }
-        }
-        printf("\n");
-    }
-
-    printf("=======================================\n");
-}
-
-
-Symtab::Symtab(){ }
-
-void Symtab::push_back(Elf32_Sym& sym){
-    data.push_back(sym);
-}
-
-size_t Symtab::get_size() const {
-    return (data.size() * sizeof(Elf32_Sym));
-}
-
-void Symtab::serialize(std::ostream& os){
-    if (data.size() > 0){
-        printf("size of symtab: %lu\n", data.size());
-        header->sh_offset = static_cast<uint32_t>(os.tellp());
-        header->sh_size = get_size();
-        for (Elf32_Sym s : data)
-        {
-            s.serialize(os, LE);
-        }
-        //os.write(reinterpret_cast<const char*>(data.data()), get_size());
-    }
-}
-
 ELF32::ELF32(void){
     init_elf_header();
     init_section_headers();
@@ -210,7 +97,8 @@ void ELF32::init_symtab(){
 }
 
 void ELF32::init_text_section(){
-    Section* text = new Section();
+    //Section<uint32_t>* text = new Section<uint32_t>();
+    Text* text = new Text();
     std::string section_name = ".text";
 
     Elf32_Shdr* sh = new Elf32_Shdr();
@@ -234,7 +122,7 @@ void ELF32::init_section_headers(){
 }
 
 void ELF32::init_data_section(){
-    Section* data = new Section();
+    Data* data = new Data();
     std::string section_name = ".data";
 
     Elf32_Shdr* sh = new Elf32_Shdr();
@@ -392,7 +280,8 @@ void ELF32::_resolve_unresolved_instructions()
                   << ", PC: "     << entry.pc_insn_number 
                   << ", hash: "   << entry.hash << std::endl;
         */
-        uint32_t insn = sec_text->get_entry(entry.insn_number);
+        uint32_t insn;
+        sec_text->get_entry(entry.insn_number, insn);
         uint32_t resolved_insn_number;
         int32_t  resolved_effective_offset;
         //std::cout << "instruction before: " << std::hex << insn << std::endl;
@@ -505,12 +394,13 @@ void ELF32::init_elf_header(){
 }
 
 void ELF32::serialize(std::ostream& os){
+    byte_order bo = LE;
     elf_header.serialize(os);
     std::streampos pos = os.tellp();
 
     // Add sections
     std::cout << "# of sections: " << sections.size() << std::endl;
-    for (std::vector<Section *>::iterator it = sections.begin(); it != sections.end(); ++it) {
+    for (std::vector<SectionBase *>::iterator it = sections.begin(); it != sections.end(); ++it) {
         pos = os.tellp();
         (*it)->serialize(os, LE); 
         // .text in RISC-V needs to be LE, data could be any. For now, we are doing all LE
@@ -520,12 +410,12 @@ void ELF32::serialize(std::ostream& os){
 
     // Add string tables
     //strtab->print_content();
-    strtab->serialize(os);
+    strtab->serialize(os, bo);
 
     //shstrtab->print_content();
-    shstrtab->serialize(os);
+    shstrtab->serialize(os, bo);
 
-    symtab->serialize(os);
+    symtab->serialize(os, bo);
 
     std::cout << "beginning of the section header here: " << os.tellp() << std::endl;
     elf_header.e_shoff = static_cast<uint32_t>(os.tellp());
@@ -547,7 +437,7 @@ void ELF32::serialize(std::ostream& os){
             std::cout << "e_shstrndx: " << elf_header.e_shstrndx << std::endl;
         }
 
-        (*it)->serialize(os, LE);
+        (*it)->serialize(os, bo);
         pos += sizeof(Elf32_Shdr);
     }
 

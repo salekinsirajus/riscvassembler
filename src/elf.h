@@ -18,51 +18,10 @@
 #include "encoding.h"
 #include "utils.h"
 #include "section.h"
-
-//TODO: move the implementation to a separate file
-class StringTable
-{
-public:
-    StringTable();
-
-    // Adds a null-terminated string and returns its offset
-    size_t add_string(const char* str);
-
-    // Access string at offset
-    const char* get_string(size_t offset) const;
-
-    // Returns total size including both nulls
-    size_t get_size() const;
-
-    // Write string table to output stream and update header
-    void serialize(std::ostream &os) const;
-
-    // Debugging aid
-    void print_content() const;
-
-    void init_table();
-
-    Elf32_Shdr* header;
-
-private:
-    std::vector<char> content;
-};
-
-class Symtab
-{
-public:
-    Symtab();
-
-    // TODO: consider if the name is okay since it's overload of a term
-    void push_back(Elf32_Sym& sym);
-    void serialize(std::ostream& os);
-    size_t get_size() const;
-
-    Elf32_Shdr* header;
-
-private:
-     std::vector<Elf32_Sym> data;
-};
+#include "symtab.h"
+#include "strtab.h"
+#include "text.h"
+#include "data.h"
 
 // what we need for the assembler and what we dont need
 // Relocatable object files do not need a program header table. (solaris)
@@ -99,7 +58,6 @@ class ELF32
 
         size_t sections_count() const;
         size_t section_headers_count() const;
-        size_t section_content_size(Section& s) const;
         void   init_label(std::string label, bool is_global, std::string section_name);
         bool   label_exists(std::string label);
         void   update_label_visibility(std::string label, bool is_global);
@@ -147,12 +105,12 @@ class ELF32
 
         std::vector<Elf32_Shdr *> section_headers; /* Section Headers (req)  */
         Elf32_Shdr*               header_shstrtab; /* ptr to shstrtab sec hdr*/
-        std::vector<Section *>    sections;        /* Section ptrs           */
+        std::vector<SectionBase *>sections;        /* Section ptrs           */
 
-        Section                   *sec_data;
-        Section                   *sec_bss;
-        Section                   *sec_rodata;
-        Section                   *sec_text;
+        Data                      *sec_data;
+        Data                      *sec_bss;
+        Data                      *sec_rodata;
+        Text                      *sec_text;
 
         StringTable               *strtab;         /* string table (regular) */
         StringTable               *shstrtab;       /* section header strtab  */
