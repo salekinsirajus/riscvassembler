@@ -10,7 +10,7 @@
 
     using namespace std;
 
-    ELF32 newElfContent;
+    ELF32 elf;
 
     // flex stuff bison needs
     extern int yylex();
@@ -85,8 +85,8 @@
 program:
     statements
     {
-        newElfContent._resolve_unresolved_instructions();
-        write_elf(newElfContent, out_filename);
+        elf._resolve_unresolved_instructions();
+        write_elf(elf, out_filename);
     }
     ;
 
@@ -97,15 +97,15 @@ statements:
 statement:
      LABEL COLON instructions
     {
-        newElfContent.init_label($1, false/*is_global*/, currentSection);
+        elf.init_label($1, false/*is_global*/, currentSection);
     }
     | LABEL COLON directive
     {
+        std::cout << "LABEL: directive " << std::endl;
+        // the work need to be done at the terminal conditions
         currentLabel = $1;
-        //TODO: add other type of values besides string
-        //FIXME: is this even correct?
         if (temp_value.size() > 0){
-            newElfContent.add_variable_to_symtab(currentLabel, temp_value, ".data");
+            elf.add_variable_to_symtab(currentLabel, temp_value, ".data");
             temp_value = "";  //reset
         }
     }
@@ -160,7 +160,7 @@ instruction:
         //ADD SUB SLL SLT SLTU XOR SRL SRA OR AND
         std::cout << "r" << $2 << ", r" << $4 << ", r" << $6 << std::endl;
         temp_inst = emit_r_type_instruction(0, $4, $6, ($1).funct3, $2, ($1).op);
-        newElfContent.add_to_text(temp_inst); //TODO: add API
+        elf.add_to_text(temp_inst); //TODO: add API
 
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
@@ -174,7 +174,7 @@ instruction:
         }
         offset = (uint32_t)($6 & 0xFFF); // 12-bit?
         temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
-        newElfContent.add_to_text(temp_inst); //TODO: add API
+        elf.add_to_text(temp_inst); //TODO: add API
 
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
@@ -194,7 +194,7 @@ instruction:
            // TODO: look into word vs halfword distinctions
            temp_inst = emit_s_type_instruction($2, $6, $4, ($1).funct3, temp_opcode);
         }
-        newElfContent.add_to_text(temp_inst);
+        elf.add_to_text(temp_inst);
 
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
@@ -204,19 +204,19 @@ instruction:
         // These are typically branch instructions
         std::cout << "r"<< $2 << ", r" << $4 << ", " << $6 << std::endl;
         offset = 0;
-        op_status = newElfContent.resolve_label($6, offset);
+        op_status = elf.resolve_label($6, offset);
         if (op_status == -1){
             std::cout << "no valid address found: " << offset << std::endl;
-            newElfContent.add_to_unresolved_insns(
-                newElfContent.get_next_insn_number(currentSection), B_TYPE, offset,
-                newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
+            elf.add_to_unresolved_insns(
+                elf.get_next_insn_number(currentSection), B_TYPE, offset,
+                elf.get_next_insn_number(currentSection) - 1 /* add api */
             );
         }
         temp_inst = emit_b_type_instruction(
             0x0, $2, $4, ($1).funct3, ($1).op
         );
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
-        newElfContent.add_to_text(temp_inst);
+        elf.add_to_text(temp_inst);
     }
     | opcode
     {
@@ -225,7 +225,7 @@ instruction:
         temp_inst = emit_i_type_instruction(
            0,0,($1).imm12,($1).funct3,($1).op
         );
-        newElfContent.add_to_text(temp_inst);
+        elf.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
         ($1).valid = 0;
     }
@@ -247,13 +247,13 @@ psuedo_instruction:
         // alias of: jal x0, label
         std::cout << "j " << $2 << std::endl;
         offset = 0;
-        op_status = newElfContent.resolve_label($2, offset);
+        op_status = elf.resolve_label($2, offset);
         if (op_status == -1)
         {
             std::cout << "no valid address found: " << offset << std::endl;
-            newElfContent.add_to_unresolved_insns(
-                newElfContent.get_next_insn_number(currentSection), J_TYPE, offset,
-                newElfContent.get_next_insn_number(currentSection) - 1 /* add api */
+            elf.add_to_unresolved_insns(
+                elf.get_next_insn_number(currentSection), J_TYPE, offset,
+                elf.get_next_insn_number(currentSection) - 1 /* add api */
             );
         } 
         else
@@ -266,7 +266,7 @@ psuedo_instruction:
 
             temp_inst = emit_j_type_instruction(offset, 0 /*rd=x0*/, JAL_32);
             std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
-            newElfContent.add_to_text(temp_inst);
+            elf.add_to_text(temp_inst);
             std::memset(&temp_inst, 0, sizeof(temp_inst));
         }
     }
@@ -275,7 +275,7 @@ psuedo_instruction:
         std::cout << "mv x"<< $2 << ", x" << $4 << std::endl;
         //TODO: make sure the MOV insturction is completely expanded
         temp_inst = emit_i_type_instruction($2, $4, 0, 0x0, 0x13);
-        newElfContent.add_to_text(temp_inst);
+        elf.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     | RET
@@ -284,7 +284,7 @@ psuedo_instruction:
         temp_inst = emit_i_type_instruction(
            0/*rd=x0*/, 0 /*rs1=x0*/, 1 /*imm*/, 0x0/*funct3*/, JALR_32
         ); // FIXME: the annotations of params are wrong
-        newElfContent.add_to_text(temp_inst);
+        elf.add_to_text(temp_inst);
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
     ;
