@@ -145,7 +145,7 @@ void ELF32::init_strtables(){
     this->header_shstrtab = sh_shstrtab;  // saving it
 
     strtab = new StringTable();
-    shstrtab = new StringTable();
+    shstrtab = new StringTable(true);
 
     strtab->header = sh_strtab;
     shstrtab->header = sh_shstrtab;
@@ -156,8 +156,8 @@ void ELF32::init_strtables(){
     sh_strtab->sh_type = SHT_STRTAB;
     sh_shstrtab->sh_type = SHT_STRTAB;
 
-    strtab->header->sh_size = strtab->get_size();
-    shstrtab->header->sh_size = shstrtab->get_size();
+    strtab->header->sh_size = strtab->size_in_bytes();
+    shstrtab->header->sh_size = shstrtab->size_in_bytes();
 
     sh_shstrtab->sh_name = store_section_name(".shstrtab");
     sh_strtab->sh_name = store_section_name(".strtab");
@@ -170,15 +170,13 @@ void ELF32::init_strtables(){
 
 size_t ELF32::store_section_name(std::string name){
     size_t offset = shstrtab->add_string(name.c_str());
-    shstrtab->header->sh_size = shstrtab->get_size();
 
-    //std::cout << "storing section name for `" << name << "` at " << offset << std::endl; 
     return offset;
 }
 
 size_t ELF32::store_regular_string(std::string str){
     size_t offset = strtab->add_string(str.c_str());
-    strtab->header->sh_size = strtab->get_size();
+    strtab->header->sh_size = strtab->size_in_bytes();
 
     return offset; //index at which this string is stored
 }

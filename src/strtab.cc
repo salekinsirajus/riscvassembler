@@ -1,13 +1,19 @@
 #include "strtab.h"
 
-StringTable::StringTable(void) {
+StringTable::StringTable(bool _is_shstrtab)
+{
     init_table();
+    is_section_header_string_table = _is_shstrtab;
 }
 
 void StringTable::init_table(){
     if (content.empty()){
        content.push_back('\0');
     }
+}
+
+bool StringTable::is_shstrtab() const {
+    return is_section_header_string_table;
 }
 
 size_t StringTable::add_string(const char* str) {
@@ -29,6 +35,7 @@ size_t StringTable::add_string(const char* str) {
     content.insert(content.end() - 1, str, str + len);
     content.insert(content.end() - 1, '\0');
 
+    header->sh_size = size_in_bytes();
     return offset;
 }
 const char* StringTable::get_string(size_t offset) const {
@@ -36,7 +43,7 @@ const char* StringTable::get_string(size_t offset) const {
     return &content[offset];
 }
 
-size_t StringTable::get_size() const {
+size_t StringTable::size() const {
     return content.size();
 }
 
@@ -53,7 +60,7 @@ void StringTable::serialize(std::ostream &os, byte_order bo) {
     os.seekp(0, std::ios_base::end); //get to the end
 
     header->sh_offset = static_cast<uint32_t>(os.tellp());
-    header->sh_size = get_size();
+    header->sh_size = size_in_bytes();
 
     //endianness adjustment is not needed for a char (so we are ignoring the byte order param
     os.write(reinterpret_cast<const char*>(content.data()), content.size());
@@ -92,4 +99,3 @@ void StringTable::print_content() const {
 
     printf("=======================================\n");
 }
-
