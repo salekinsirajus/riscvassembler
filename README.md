@@ -17,13 +17,14 @@ object file.
 ./riscvass tests/helloworld.s
 ```
 
-This will result in an object file called `out.o`. you
-can open it with a hex viewer like `xxd out.o` to see
+This will result in an object file called `tests/helloworld.o`. you
+can open it with a hex viewer like `xxd test/helloworld.o` to dump
 the content.
 
 ## IN PROGRESS
-- [ ] Refactor Sections, string tables and symbol tables to inherit from the same section class
-- [ ] Make sure an a string literal needed during runtimg goes into either .data or .rodata
+- [x] Refactor Sections, string tables and symbol tables to inherit from the same section class
+- [x] Make sure an a string literal needed during runtimg goes into either .data or .rodata. (it goes to .data now)
+- [ ] Implement a method to store int, float to program data
 
 ## TODO
 - [ ] Refactor StringTable so that it always stays in a valid state
