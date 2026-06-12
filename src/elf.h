@@ -80,6 +80,8 @@ class ELF32
                  std::string value,
                  std::string section
              );
+        // todo: we should use an enum class to indicate which section
+        void add_program_data(std::string name, std::string val, std::string section);
         void serialize(std::ostream& os);
         void deserialize();
 

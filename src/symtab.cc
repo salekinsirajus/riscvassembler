@@ -2,8 +2,9 @@
 
 Symtab::Symtab(){ }
 
-void Symtab::push_back(Elf32_Sym& sym){
+void Symtab::push(Elf32_Sym& sym){
     data.push_back(sym);
+    header->sh_size = size_in_bytes();
 }
 
 size_t Symtab::size_in_bytes() const {

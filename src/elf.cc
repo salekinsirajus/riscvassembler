@@ -90,7 +90,7 @@ void ELF32::init_symtab(){
 
     Elf32_Sym first = {};
     first.st_shndx = SHN_UNDEF;
-    symtab->push_back(first);
+    symtab->push(first);
 
     section_to_idx[section_name] = section_headers.size();
     section_headers.push_back(sh);
@@ -206,7 +206,7 @@ void ELF32::init_label(std::string the_label, bool is_global, std::string sectio
     label_to_addr[hasher(the_label)] = sec_text->last_index();
 
     symtab->header->sh_size += sizeof(Elf32_Sym); //update size
-    symtab->push_back(sym);
+    symtab->push(sym);
     //return idx_strtab;
 }
 
@@ -269,8 +269,8 @@ void ELF32::_resolve_unresolved_instructions()
     btype32_t b; 
     utype32_t u; 
 
-   //TODO: if it's still not resolved, it's most likely would be resolved by the linker
-   //TODO: make appropriate structure for the object file
+   //TODO: if it's still not resolved, it's would be resolved by the linker
+   //TODO: add a rela.text section
     for (auto &entry : unresolved_instructions){
         /*
         std::cout << "Type: "     << entry.insn_type 
@@ -337,11 +337,12 @@ void ELF32::add_to_text(uint32_t instr){
 }
 
 void ELF32::add_to_symtab(Elf32_Sym& entry){
-    symtab->push_back(entry);
+    symtab->push(entry);
 }
 
 //TODO: does the entry mean a label or a string?
 //TODO: or a variable?
+//TODO: delete this version
 void ELF32::add_variable_to_symtab(
     std::string name,
     std::string value,
@@ -354,8 +355,20 @@ void ELF32::add_variable_to_symtab(
     sym.st_shndx = 1; // .data FIXME: find section index from the section value
     sym.st_value = store_regular_string(value);   // offset in relation to the section identified in st_shndx
 
-    symtab->push_back(sym);
+    symtab->push(sym);
     symtab->header->sh_size += sizeof(Elf32_Sym);
+}
+
+void ELF32::add_program_data(std::string var_name, std::string value, std::string section)
+{
+    Elf32_Sym sym = {};
+    sym.st_name = store_regular_string(var_name); // strtab idx
+    sym.st_info = ELF32_ST_BIND(STB_LOCAL);
+
+    sym.st_shndx = section_to_idx[section];
+    sym.st_value = sec_data->push(value);   // offset in relation to the section identified in st_shndx
+
+    symtab->push(sym);
 }
 
 void ELF32::init_elf_header(){

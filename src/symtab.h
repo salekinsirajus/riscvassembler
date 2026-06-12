@@ -6,7 +6,7 @@ class Symtab : Section<Elf32_Sym>
     public:
         Symtab();
     
-        void push_back(Elf32_Sym& sym);
+        void push(Elf32_Sym& sym);
         void serialize(std::ostream& os, byte_order bo) override;
         size_t size() const;
         size_t size_in_bytes() const override;
