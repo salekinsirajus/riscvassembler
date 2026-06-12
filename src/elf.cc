@@ -336,10 +336,6 @@ void ELF32::add_to_text(uint32_t instr){
     sec_text->push(instr);
 }
 
-void ELF32::add_to_data(){
-    std::cout << "add_to_data (NYI)" << std::endl;
-}
-
 void ELF32::add_to_symtab(Elf32_Sym& entry){
     symtab->push_back(entry);
 }

@@ -1,11 +1,11 @@
 #include "section.h"
 
-class Data : public Section<uint32_t>
+class Data : public Section<uint8_t>
 {
 public:
     Data();
 
-    uint32_t get_entry(size_t idx);
+    uint8_t get_entry(size_t idx);
 
     size_t size() const;
 
@@ -13,9 +13,11 @@ public:
 
     void serialize(std::ostream &os, byte_order bo) override;
 
-    void push(const uint32_t instr);  
+    size_t push(const uint32_t entry);  
+    size_t push(const uint8_t entry);
+    size_t push(std::string entry);
 
 private:
 
-    std::vector<uint32_t> data;
+    std::vector<uint8_t> data;
 };

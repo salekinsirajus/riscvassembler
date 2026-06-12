@@ -102,10 +102,9 @@ statement:
     | LABEL COLON directive
     {
         std::cout << "LABEL: directive " << std::endl;
-        // the work need to be done at the terminal conditions
         currentLabel = $1;
         if (temp_value.size() > 0){
-            elf.add_variable_to_symtab(currentLabel, temp_value, ".data");
+            elf.add_program_data($1, temp_value, currentSection);
             temp_value = "";  //reset
         }
     }
@@ -138,13 +137,15 @@ directive:
     }
     | D_GLOBAL LABEL
     {
-        newElfContent.update_label_visibility($2, true);
+        elf.update_label_visibility($2, true);
     }
     | D_ASCII STRING
     {
-        std::cout << ".ascii STRING: " << currentLabel << std::endl;
-        std::cout << "Should be saved to section: " << currentSection << std::endl;
+        currentSection = ".data"; // could be .rodata
+        // TODO: currentSection is a bit misleading
         temp_value = $2;
+        // TODO: temp_value should be renamed to terminal value or somthing similar
+        std::cout << ".ascii STRING: " << temp_value << " will be stored to " << currentSection <<  std::endl;
     }
     ;
 
