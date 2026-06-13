@@ -109,9 +109,6 @@ statement:
         }
     }
     | directive
-    {
-        std::cout << "directive (NYI)" << std::endl;
-    }
     ;
 
 directive:
