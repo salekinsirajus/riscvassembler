@@ -22,9 +22,11 @@ can open it with a hex viewer like `xxd test/helloworld.o` to dump
 the content.
 
 ## IN PROGRESS
-- [x] Refactor Sections, string tables and symbol tables to inherit from the same section class
-- [x] Make sure an a string literal needed during runtimg goes into either .data or .rodata. (it goes to .data now)
+- [ ] Implement `la x label`
+- implement modifiers like %pcrel_hi, %pcrel_lo, %hi, %lo
+- make sure we are throwing syntax error if they are misplaced
 - [ ] Implement a method to store int, float to program data
+- [ ] How do we know where to look for an address (for instruction vs data)
 
 ## TODO
 - [ ] Refactor StringTable so that it always stays in a valid state

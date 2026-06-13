@@ -35,7 +35,6 @@
 "and"            { return AND; }
 "andi"           { return ANDI; }
 "sub"            { return SUB; }
-"subi"           { return SUBI; }
 "li"             { return LI; }
 "beq"            { return BEQ; }
 "bne"            { return BNE; }
@@ -68,8 +67,13 @@
 "xor"            { return XOR; }
 "xori"           { return XORI; }
 "ecall"          { return ECALL; }
-
+"ebreak"         { return EBREAK; }
 "ret"            { return RET; }
+"jal"            { return JAL; }
+"jalr"           { return JALR; }
+"fence"          { return FENCE; }
+"lui"            { return LUI; }
+"auipc"          { return AUIPC; }
 
 [+-]?[0-9]+           {
                     //TODO:  need to differentiate bw imm vs offset

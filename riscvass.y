@@ -58,13 +58,21 @@
 %token <token> ID  //Might need to update this
 %token <token> ASSIGNMENT
 
-%token <token> ADD ADDI AND ANDI SUB SUBI LI LA BGE BGEU
-%token <token> BLT BLTU BEQ BNE LB LBU LH LHU LW OR ORI
-%token <token> SB SH SLL SLLI SLT SLTI SLTIU SLTU SRA
-%token <token> SRAI SRL SRLI SW XOR XORI
-%token <token> ECALL
-
-%token <token> JUMP MOV RET
+// opcode mnemonics - 32-bit base
+// arithmetic/logic
+%token <token> ADD ADDI AND ANDI SUB OR ORI XOR XORI 
+// shifts
+%token <token> SLL SLLI SRL SRLI SRA SRAI  
+// compare
+%token <token> BLT BLTU BEQ BNE BGE BGEU  
+// loads and stores
+%token <token> LW LH LHU LB LBU SW SH SB SLT SLTI SLTIU SLTU JAL JALR
+// system and memory
+%token <token> ECALL EBREAK FENCE
+// upper immediate
+%token <token> LUI AUIPC
+// psuedo instructions
+%token <token> JUMP MOV RET LI LA
 
 %token <token> SECTION
 %token <token> DIRECTIVE_COMMAND
@@ -237,6 +245,8 @@ psuedo_instruction:
       LA REG COMMA LABEL
     {
         std::cout << "la x" << $2 << " " << $4 << std::endl;
+        // TODO: find the address of
+        // TODO: if not, add to the unresolved instructions set
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
     }
