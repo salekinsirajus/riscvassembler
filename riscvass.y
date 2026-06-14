@@ -7,6 +7,7 @@
     #include "src/encoding.h"
     #include "src/utils.h"
     #include "src/elf.h"
+    #include "parser_incl.h"
 
     using namespace std;
 
@@ -21,9 +22,6 @@
     extern int charnum;
 
     // go from left to right
-    // TODO: remove the specific data type
-    rtype32_t rtype_instr;
-    itype32_t itype_instr;
     uint32_t  temp_inst;
 
     std::string temp_value;
@@ -33,6 +31,7 @@
     uint32_t offset;
     uint32_t temp_opcode;
     int32_t op_status;
+    int64_t temp_int_literal;
 
     std::string source_filename;
     std::string out_filename;
@@ -45,6 +44,7 @@
     char       *sval;
     int        token;
     opcode_t   opc_t;
+    imm_kind   imm_k;
 }
 
 
@@ -77,15 +77,17 @@
 %token <token> SECTION
 %token <token> DIRECTIVE_COMMAND
 %token <token> TEXT
-%token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS
-%token <token> D_ASCII
+%token <token> D_GLOBAL D_DATA D_TEXT D_SIZE D_RODATA D_BSS D_ASCII
+%token <token> PCT HI LO
 
 //non-terminals
 %token <sval> STRING
 %token <sval> LABEL
 %type <ival>  register;
 %type <opc_t> opcode;    // generic opcodes
-%type <opc_t> ls_opcode; // for loads aand stores
+%type <opc_t> opcode_load_store opcode_immediate opcode_branch;
+%type <imm_k> immediate_kind;
+%type <imm_k> modifier;
 
 %%
 //actual grammar
@@ -171,21 +173,37 @@ instruction:
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
-    | opcode register COMMA register COMMA IMM
+    | opcode_immediate register COMMA register COMMA immediate_kind
     {
-        //ADDI SUBI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
-        current_stmt += "x" + std::to_string($2) + ", x" + std::to_string($4) + ", " + std::to_string($6);
-        if (!is_within_range_12b($6)){
-           exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string($6) ,0);
+        //ADDI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
+        std::cout << "I-type" << std::endl;
+        current_stmt += "x" + std::to_string($2) + ", x" + std::to_string($4) + ", " + std::to_string(static_cast<int>($6));
+        switch($6)
+        {
+            case imm_kind::INT: 
+                if (!is_within_range_12b(temp_int_literal)){
+                   exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string(temp_int_literal) ,0);
+                }
+                offset = (uint32_t)(temp_int_literal & 0xFFF); // 12-bit?
+                temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
+                elf.add_to_text(temp_inst); //TODO: add API
+                break;
+            case imm_kind::SYMBOL:
+                // TODO: enforce the right kind of modifiers that can be accepted here for I-types
+                std::cout << "Symbol as immediate is NYI" << std::endl; 
+                break;
+            case imm_kind::MODIFIER_ABS_HI:
+                std::cout << "\%hi() modifier IN-PROGRESS" << std::endl;
+                break;
+            default:
+                std::cout << "Other imm kind: NYI" << std::endl;
+                break;
         }
-        offset = (uint32_t)($6 & 0xFFF); // 12-bit?
-        temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
-        elf.add_to_text(temp_inst); //TODO: add API
 
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
-    | ls_opcode register COMMA IMM PAREN_OPEN register PAREN_CLOSE
+    | opcode_load_store register COMMA IMM PAREN_OPEN register PAREN_CLOSE
     {
         std::cout << "r" << $2 << " " << $4 << "(r" << $6 << ")" << std::endl;
         // TODO: ensure sign-extended and unsigned are handled appropriately
@@ -205,8 +223,9 @@ instruction:
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
-    | opcode register COMMA register COMMA LABEL
+    | opcode_branch register COMMA register COMMA LABEL
     {
+        std::cout << "B-type" << std::endl;
         // These are typically branch instructions
         std::cout << "r"<< $2 << ", r" << $4 << ", " << $6 << std::endl;
         offset = 0;
@@ -298,23 +317,14 @@ psuedo_instruction:
     ;
 
 opcode:
-      ADDI  { $$ = {.op = ADDI_32,  .funct3 = 0x0, .valid = 1}; current_stmt = "addi "; }
-    | SLTI  { $$ = {.op = SLTI_32,  .funct3 = 0x2, .valid = 1}; current_stmt = "slti"; }
-    | SLTIU { $$ = {.op = SLTIU_32, .funct3 = 0x3, .valid = 1}; current_stmt = "sltiu "; }
-    | XORI  { $$ = {.op = XORI_32,  .funct3 = 0x4, .valid = 1}; current_stmt =  "xori "; }
-    | ORI   { $$ = {.op = ORI_32,   .funct3 = 0x5, .valid = 1}; current_stmt =  "ori "; }
-    | ANDI  { $$ = {.op = ANDI_32,  .funct3 = 0x6, .valid = 1}; current_stmt =  "andi "; }
+      SLTIU { $$ = {.op = SLTIU_32, .funct3 = 0x3, .valid = 1}; current_stmt = "sltiu "; }
     | ECALL { $$ = {.op = ECALL_32, .imm12  = 0x0, .valid = 1}; current_stmt =  "ecall "; }
-
-    | BEQ   { $$ = {.op = BEQ_32,   .funct3 = 0x0, .valid = 1}; current_stmt =  "beq "; }
-
     | ADD   { $$ = {.op = ADD_32,   .funct3 = 0x0, .funct7 = 0x00, .valid = 1}; current_stmt = "add "; }
     | SUB   { $$ = {.op = SUB_32,   .funct3 = 0x0, .funct7 = 0x20, .valid = 1}; current_stmt = "sub "; }
     ;
 
-ls_opcode:
-
-    | LB    { $$ = {.op = LB_32,    .funct3 = 0x0, .valid = 1}; current_stmt = "lb "; }
+opcode_load_store:
+      LB    { $$ = {.op = LB_32,    .funct3 = 0x0, .valid = 1}; current_stmt = "lb "; }
     | LH    { $$ = {.op = LH_32,    .funct3 = 0x1, .valid = 1}; current_stmt = "lh "; }
     | LW    { $$ = {.op = LW_32,    .funct3 = 0x2, .valid = 1}; current_stmt = "lw "; }
     | LBU   { $$ = {.op = LBU_32,   .funct3 = 0x4, .valid = 1}; current_stmt = "lbu "; }
@@ -324,12 +334,53 @@ ls_opcode:
     | SW    { $$ = {.op = SW_32,    .funct3 = 0x2, .valid = 1}; current_stmt = "sw "; }
     ;
 
+opcode_immediate:
+      ADDI  { $$ = {.op = ADDI_32,  .funct3 = 0x0, .valid = 1}; current_stmt = "addi "; }
+    | SLTI  { $$ = {.op = SLTI_32,  .funct3 = 0x2, .valid = 1}; current_stmt = "slti"; }
+    | ORI   { $$ = {.op = ORI_32,   .funct3 = 0x5, .valid = 1}; current_stmt =  "ori "; }
+    | XORI  { $$ = {.op = XORI_32,  .funct3 = 0x4, .valid = 1}; current_stmt =  "xori "; }
+    | ANDI  { $$ = {.op = ANDI_32,  .funct3 = 0x6, .valid = 1}; current_stmt =  "andi "; }
+    ;
+
+opcode_branch:
+
+    BEQ   { $$ = {.op = BEQ_32,   .funct3 = 0x0, .valid = 1}; current_stmt =  "beq "; }
+    ;
+
 register:
     REG
     {
         $$ = $1;
     }
     ;
+
+immediate_kind:
+    IMM 
+    {
+       // TODO: call it something else instead of IMM, it's too loaded a term
+       currentLabel = "";
+       temp_int_literal = $1;
+       $$ = imm_kind::INT;
+    }
+    | modifier
+    {
+       std::cout << "a modifier" << std::endl;
+    }
+    | LABEL
+    {
+       std::cout << "a symbol" << std::endl;
+       currentLabel = $1;
+       $$ = imm_kind::SYMBOL;
+    }
+    ;
+
+modifier:
+    PCT HI PAREN_OPEN LABEL PAREN_CLOSE
+    {
+        // should it be label or symbol
+        currentLabel = $4;
+        $$ = imm_kind::MODIFIER_ABS_HI;
+    }
 
 %%
 

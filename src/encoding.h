@@ -178,17 +178,6 @@ typedef struct jtype32_t {
 
 uint32_t emit_j_type_instruction(unsigned imm, unsigned rd, unsigned opcode);
 
-// IMPORTANT - this is for the bison non-terminal to be able to
-// return complex data. TODO: move this from here to somewhere more appropriate
-typedef struct opcode_t {
-    uint32_t op;
-    uint32_t funct3;
-    uint32_t funct5;
-    uint32_t funct7;
-    uint32_t imm12;
-    int32_t  valid;
-} opcode_t;
-
 enum RISCV32_INST_TYPE {
 	B_TYPE,
 	R_TYPE,
