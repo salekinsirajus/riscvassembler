@@ -15,3 +15,10 @@ I didn't know they were psuedo instructions.
 ## Sign Extension
 Sign extension seems pretty convoluted but apparently it is designed
 to reduce complexity in hardware implementation.
+
+## Modifiers
+Address modifiers makes implementation less straightforward.
+For now, I am going to be storing an arbitray enum value in place.
+However, it will be interesting to see how we can store both datapoints:
+unresolved address and the access modifier that the linker needs to
+apply
