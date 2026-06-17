@@ -16,17 +16,16 @@ object file.
 ```
 ./riscvass tests/helloworld.s
 ```
-
 This will result in an object file called `tests/helloworld.o`. you
 can open it with a hex viewer like `xxd test/helloworld.o` to dump
 the content.
 
 ## IN PROGRESS
-- [ ] Implement `la x label`
-- implement modifiers like %pcrel_hi, %pcrel_lo, %hi, %lo
-- make sure we are throwing syntax error if they are misplaced
+- [ ] Implement symbol resolution and adding unresolved symbols to the container
+- [ ] implement modifiers like `%pcrel_hi`, `%pcrel_lo`, `%hi`, `%lo` (and the rest defined in the asm grammer)
 - [ ] Implement a method to store int, float to program data
 - [ ] How do we know where to look for an address (for instruction vs data)
+- [ ] Implement `la x label`
 
 ## TODO
 - [ ] Refactor StringTable so that it always stays in a valid state

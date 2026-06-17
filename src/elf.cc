@@ -225,13 +225,47 @@ bool ELF32::label_exists(std::string label){
     return (resolved_labels.count(label) > 0);
 }
 
+bool ELF32::symbol_exists(std::string symbol)
+{
+    std::map<std::string, std::pair<uint32_t, size_t>>::iterator it = symbols.find(symbol);
+    if (it == symbols.end()) return false;
+
+    return true;
+}
+
+bool ELF32::symbol_resolved(std::string symbol)
+{
+    if (!symbol_exists(symbol)) return false;
+
+    if (symbols[symbol].first == UNRESOLVED_OFF)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool ELF32::resolve_symbol(std::string symbol, uint32_t& offset, size_t& section_idx)
+{
+    bool exists = symbol_exists(symbol);
+
+    if (!exists)
+    {
+        offset = UNRESOLVED_OFF;
+        section_idx = UNRESOLVED_IDX;
+        symbols[symbol] = std::make_pair(offset, section_idx);
+
+        return false;
+    }
+
+    offset = symbols[symbol].first;
+    section_idx = symbols[symbol].second;
+
+    return true;
+}
+
 int32_t ELF32::resolve_label(std::string label, uint32_t &offset){
     //TODO: figure out how to differentiate between the data (string) and code labels
-    //std::cout << "====Existing Labels=====" << std::endl;
-    //for (auto &pair : resolved_labels){
-        //std::cout << pair.first << ": " << std::hex << pair.second << std::endl;
-    //}
-    //std::cout << "========================" << std::endl;
     //if the label already exists, return the offset
     std::cout << "resolve_label(" << label << ")" << std::endl;
     if (resolved_labels.count(label) > 0){

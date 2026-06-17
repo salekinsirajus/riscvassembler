@@ -56,14 +56,17 @@ class ELF32
         ELF32(void);
         ~ELF32();
 
-        size_t sections_count() const;
-        size_t section_headers_count() const;
-        void   init_label(std::string label, bool is_global, std::string section_name);
-        bool   label_exists(std::string label);
-        void   update_label_visibility(std::string label, bool is_global);
-        size_t store_regular_string(std::string str);
-        size_t store_section_name(std::string);
-        int32_t resolve_label(std::string label, uint32_t &offset);
+        size_t  sections_count() const;
+        size_t  section_headers_count() const;
+        void    init_label(std::string label, bool is_global, std::string section_name);
+        bool    label_exists(std::string label);
+        void    update_label_visibility(std::string label, bool is_global);
+        size_t  store_regular_string(std::string str);
+        size_t  store_section_name(std::string);
+        int32_t resolve_label(std::string label, uint32_t& offset);
+        bool    resolve_symbol(std::string symbol, uint32_t& offset, size_t& section_idx);
+        bool    symbol_exists(std::string symbol);
+        bool    symbol_resolved(std::string symbol);
         size_t get_next_insn_number(std::string section);
 
         void _resolve_unresolved_instructions();
@@ -117,9 +120,12 @@ class ELF32
         StringTable               *shstrtab;       /* section header strtab  */
         Symtab                    *symtab;         /* symbol table           */
 
+        //FIXME: do we need two maps? resolved AND unresolved?
         std::map<std::string, uint32_t> resolved_labels;  /* resolved ones   */
         std::map<std::string, uint32_t> unresolved_labels;/* unresolved ones */
         std::map<std::string, uint32_t> section_to_idx;   /* name to shidx   */ 
+
+        std::map<std::string, std::pair<uint32_t, size_t>> symbols;
 
         std::map<uint32_t, uint32_t> label_to_addr;    /* hash to address    */
 
@@ -129,6 +135,8 @@ class ELF32
 
         // constants
         const uint32_t UNRESOLVED_ADDR = 0xDEADBEEF;
+        const uint32_t UNRESOLVED_OFF  = 0x0FFFFFFF;
+        const size_t   UNRESOLVED_IDX  = 0xFFFF;
 };
 
 void write_elf(ELF32& elf, std::string filename);

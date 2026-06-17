@@ -32,6 +32,7 @@
     uint32_t temp_opcode;
     int32_t op_status;
     int64_t temp_int_literal;
+    size_t  section_idx;
 
     std::string source_filename;
     std::string out_filename;
@@ -60,11 +61,11 @@
 
 // opcode mnemonics - 32-bit base
 // arithmetic/logic
-%token <token> ADD ADDI AND ANDI SUB OR ORI XOR XORI 
+%token <token> ADD ADDI AND ANDI SUB OR ORI XOR XORI
 // shifts
-%token <token> SLL SLLI SRL SRLI SRA SRAI  
+%token <token> SLL SLLI SRL SRLI SRA SRAI
 // compare
-%token <token> BLT BLTU BEQ BNE BGE BGEU  
+%token <token> BLT BLTU BEQ BNE BGE BGEU
 // loads and stores
 %token <token> LW LH LHU LB LBU SW SH SB SLT SLTI SLTIU SLTU JAL JALR
 // system and memory
@@ -177,10 +178,12 @@ instruction:
     {
         //ADDI SLLI SLTI SLTUI XORI SRLI SRAI ORI ANDI
         std::cout << "I-type" << std::endl;
-        current_stmt += "x" + std::to_string($2) + ", x" + std::to_string($4) + ", " + std::to_string(static_cast<int>($6));
+        current_stmt += "x" + std::to_string($2)
+                     +  ", x" + std::to_string($4)
+                     +  ", " + std::to_string(static_cast<int>($6));
         switch($6)
         {
-            case imm_kind::INT: 
+            case imm_kind::INT:
                 if (!is_within_range_12b(temp_int_literal)){
                    exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string(temp_int_literal) ,0);
                 }
@@ -190,10 +193,19 @@ instruction:
                 break;
             case imm_kind::SYMBOL:
                 // TODO: enforce the right kind of modifiers that can be accepted here for I-types
-                std::cout << "Symbol as immediate is NYI" << std::endl; 
+                std::cout << "Symbol as immediate is IN-PROGRESS" << std::endl;
+                if (!elf.symbol_exists(currentLabel)){
+                    std::cout << "Symbol not found" << std::endl;
+                    //TODO: add to the list of symbols
+                }
+                else {
+                    elf.resolve_symbol(currentLabel, offset, section_idx);
+                    temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
+                    elf.add_to_text(temp_inst);
+                }
                 break;
             case imm_kind::MODIFIER_ABS_HI:
-                std::cout << "\%hi() modifier IN-PROGRESS" << std::endl;
+                std::cout << "\%hi() modifier NYI" << std::endl;
                 break;
             default:
                 std::cout << "Other imm kind: NYI" << std::endl;
