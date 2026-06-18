@@ -77,7 +77,7 @@ class ELF32
             uint32_t pc_insn_number
         );
         void add_to_text(uint32_t);
-        void add_to_symtab(Elf32_Sym& symbol);
+
         void add_variable_to_symtab(
                  std::string name,
                  std::string value,

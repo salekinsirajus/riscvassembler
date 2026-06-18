@@ -370,10 +370,6 @@ void ELF32::add_to_text(uint32_t instr){
     sec_text->push(instr);
 }
 
-void ELF32::add_to_symtab(Elf32_Sym& entry){
-    symtab->push(entry);
-}
-
 //TODO: does the entry mean a label or a string?
 //TODO: or a variable?
 //TODO: delete this version
