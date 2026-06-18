@@ -40,7 +40,6 @@ inline uint32_t hasher(std::string& input) {
     return hash;
 }
 
-
 typedef struct UnresolvedInst32
 {
     uint32_t          insn_number;  /*FIXME: should this be signed? */
@@ -49,6 +48,14 @@ typedef struct UnresolvedInst32
     uint32_t          hash;
 } UnresolvedInst32;
 
+typedef struct Sym
+{
+    size_t   section_idx;   /* which section is this related to */
+    uint32_t offset_idx;    /* offset from section beginning: NOT SIZE but count */
+    size_t   symtab_idx;    /* index in the ELF symbol table section (TODO: is it needed?) */
+    bool     resolved;      /* is the symbol resolved */
+    bool     label;         /* is it a code label */
+} Sym;
 
 class ELF32
 {
@@ -64,7 +71,7 @@ class ELF32
         size_t  store_regular_string(std::string str);
         size_t  store_section_name(std::string);
         int32_t resolve_label(std::string label, uint32_t& offset);
-        bool    resolve_symbol(std::string symbol, uint32_t& offset, size_t& section_idx);
+        bool    resolve_symbol(std::string symbol, Sym& _sym);
         bool    symbol_exists(std::string symbol);
         bool    symbol_resolved(std::string symbol);
         size_t get_next_insn_number(std::string section);
@@ -120,7 +127,7 @@ class ELF32
         std::map<std::string, uint32_t> unresolved_labels;/* unresolved ones */
         std::map<std::string, uint32_t> section_to_idx;   /* name to shidx   */ 
 
-        std::map<std::string, std::pair<uint32_t, size_t>> symbols;
+        std::map<std::string, Sym> symbols;
 
         std::map<uint32_t, uint32_t> label_to_addr;    /* hash to address    */
 

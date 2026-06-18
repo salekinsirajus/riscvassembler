@@ -227,7 +227,7 @@ bool ELF32::label_exists(std::string label){
 
 bool ELF32::symbol_exists(std::string symbol)
 {
-    std::map<std::string, std::pair<uint32_t, size_t>>::iterator it = symbols.find(symbol);
+    std::map<std::string, Sym>::iterator it = symbols.find(symbol);
     if (it == symbols.end()) return false;
 
     return true;
@@ -237,30 +237,25 @@ bool ELF32::symbol_resolved(std::string symbol)
 {
     if (!symbol_exists(symbol)) return false;
 
-    if (symbols[symbol].first == UNRESOLVED_OFF)
+    if (symbols[symbol].resolved)
     {
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
-bool ELF32::resolve_symbol(std::string symbol, uint32_t& offset, size_t& section_idx)
+bool ELF32::resolve_symbol(std::string symbol, Sym& _sym)
 {
     bool exists = symbol_exists(symbol);
 
     if (!exists)
     {
-        offset = UNRESOLVED_OFF;
-        section_idx = UNRESOLVED_IDX;
-        symbols[symbol] = std::make_pair(offset, section_idx);
-
+        _sym = {};
         return false;
     }
 
-    offset = symbols[symbol].first;
-    section_idx = symbols[symbol].second;
-
+    _sym = symbols[symbol]; 
     return true;
 }
 

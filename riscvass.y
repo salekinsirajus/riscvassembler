@@ -30,9 +30,10 @@
 
     uint32_t offset;
     uint32_t temp_opcode;
-    int32_t op_status;
-    int64_t temp_int_literal;
-    size_t  section_idx;
+    int32_t  op_status;
+    int64_t  temp_int_literal;
+    size_t   section_idx;
+    Sym      sym;
 
     std::string source_filename;
     std::string out_filename;
@@ -199,7 +200,10 @@ instruction:
                     //TODO: add to the list of symbols
                 }
                 else {
-                    elf.resolve_symbol(currentLabel, offset, section_idx);
+                    elf.resolve_symbol(currentLabel, sym);
+                    offset = sym.offset_idx * sizeof(uint32_t); // TODO: fix for 64-bit 
+                    // TODO: add a method to calculate offset based on the current section and
+                    // TODO: the section this symbol is stored (or if it's variable, direct value)
                     temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
                     elf.add_to_text(temp_inst);
                 }
