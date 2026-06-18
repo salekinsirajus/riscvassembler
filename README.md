@@ -22,6 +22,8 @@ the content.
 
 ## IN PROGRESS
 - [ ] Implement symbol resolution and adding unresolved symbols to the container
+  - [ ] Rework the symbol resolution and label resolution.  
+  - [ ] keep where the symbol is a label a label in the bison file
 - [ ] implement modifiers like `%pcrel_hi`, `%pcrel_lo`, `%hi`, `%lo` (and the rest defined in the asm grammer)
 - [ ] Implement a method to store int, float to program data
 - [ ] How do we know where to look for an address (for instruction vs data)
