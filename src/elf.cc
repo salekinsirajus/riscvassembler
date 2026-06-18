@@ -370,25 +370,6 @@ void ELF32::add_to_text(uint32_t instr){
     sec_text->push(instr);
 }
 
-//TODO: does the entry mean a label or a string?
-//TODO: or a variable?
-//TODO: delete this version
-void ELF32::add_variable_to_symtab(
-    std::string name,
-    std::string value,
-    std::string section){
-
-    //We'll start with hardcoding to .data section
-    Elf32_Sym sym = {};
-    sym.st_name = store_regular_string(name); // strtab idx
-    sym.st_info = ELF32_ST_BIND(STB_LOCAL);   // TODO: accommodate global later)
-    sym.st_shndx = 1; // .data FIXME: find section index from the section value
-    sym.st_value = store_regular_string(value);   // offset in relation to the section identified in st_shndx
-
-    symtab->push(sym);
-    symtab->header->sh_size += sizeof(Elf32_Sym);
-}
-
 void ELF32::add_program_data(std::string var_name, std::string value, std::string section)
 {
     Elf32_Sym sym = {};

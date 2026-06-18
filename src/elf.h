@@ -78,11 +78,6 @@ class ELF32
         );
         void add_to_text(uint32_t);
 
-        void add_variable_to_symtab(
-                 std::string name,
-                 std::string value,
-                 std::string section
-             );
         // todo: we should use an enum class to indicate which section
         void add_program_data(std::string name, std::string val, std::string section);
         void serialize(std::ostream& os);
