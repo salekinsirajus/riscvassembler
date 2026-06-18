@@ -112,7 +112,7 @@ tp               { yylval.ival = 4; /*thread pointer */ return REG; }
 \."ascii"        { return D_ASCII; }
 
 \.[a-zA-Z0-9]*   { return DIRECTIVE_COMMAND; }
-[_]?[a-zA-Z0-9]* { yylval.sval = strdup(yytext); return LABEL; }
+[_]?[a-zA-Z0-9]* { yylval.sval = strdup(yytext); return SYMBOL; }
 \"([^\"]*)\"     { yylval.sval = strdup(yytext); return STRING; }
 ,                { return COMMA; }
 .                { cout << "Line: "<< linenum << ": (" << charnum << "), unknown token. (" << yytext << ")" << endl; }

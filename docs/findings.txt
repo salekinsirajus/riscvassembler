@@ -22,3 +22,21 @@ For now, I am going to be storing an arbitray enum value in place.
 However, it will be interesting to see how we can store both datapoints:
 unresolved address and the access modifier that the linker needs to
 apply
+
+## Labels vs Symbols
+I was a little confused by these two and wasn't sure if they are the same
+thing. As a result, the code had accomodations for both which made thing
+a little bit more complicated. So I am unifying both.
+
+In short, all labels are symbols but not all symbols are labels. labels
+are generally a specific point in program execution. The set of symbols
+contain labels, variables, a const int etc.
+
+In this implementation, I am accepting symbols as jump locations but you
+cannot definitively tell during parsing whether a label is valid, as in,
+is this legitimate address in text or is it a variable, since you have 
+to consider local vs global labels etc. However, once we have a unified
+store for symbols, we can provide a warning or syntax error (depending on
+the asm grammar) if a program references a non-label symbol and we know
+that it is not a label--for example, if it's defined as a constant earlier
+and lives in data--from existing symbol storage.

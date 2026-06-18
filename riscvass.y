@@ -83,7 +83,7 @@
 
 //non-terminals
 %token <sval> STRING
-%token <sval> LABEL
+%token <sval> SYMBOL
 %type <ival>  register;
 %type <opc_t> opcode;    // generic opcodes
 %type <opc_t> opcode_load_store opcode_immediate opcode_branch;
@@ -106,13 +106,13 @@ statements:
     | statements statement;
 
 statement:
-     LABEL COLON instructions
+     SYMBOL COLON instructions
     {
         elf.init_label($1, false/*is_global*/, currentSection);
     }
-    | LABEL COLON directive
+    | SYMBOL COLON directive
     {
-        std::cout << "LABEL: directive " << std::endl;
+        std::cout << "SYMBOL: directive " << std::endl;
         currentLabel = $1;
         if (temp_value.size() > 0){
             elf.add_program_data($1, temp_value, currentSection);
@@ -143,7 +143,7 @@ directive:
         currentSection = ".data";
         currentLabel = ".data";
     }
-    | D_GLOBAL LABEL
+    | D_GLOBAL SYMBOL
     {
         elf.update_label_visibility($2, true);
     }
@@ -183,7 +183,7 @@ instruction:
                      +  ", " + std::to_string(static_cast<int>($6));
         switch($6)
         {
-            case imm_kind::INT:
+            case imm_kind::IMM_INT:
                 if (!is_within_range_12b(temp_int_literal)){
                    exit_with_message(linenum, charnum, source_filename, current_stmt, std::to_string(temp_int_literal) ,0);
                 }
@@ -191,7 +191,7 @@ instruction:
                 temp_inst = emit_i_type_instruction($2, $4, offset, ($1).funct3, ($1).op);
                 elf.add_to_text(temp_inst); //TODO: add API
                 break;
-            case imm_kind::SYMBOL:
+            case imm_kind::IMM_SYMBOL:
                 // TODO: enforce the right kind of modifiers that can be accepted here for I-types
                 std::cout << "Symbol as immediate is IN-PROGRESS" << std::endl;
                 if (!elf.symbol_exists(currentLabel)){
@@ -235,7 +235,7 @@ instruction:
         ($1).valid = 0;
         std::memset(&temp_inst, 0, sizeof(temp_inst));
     }
-    | opcode_branch register COMMA register COMMA LABEL
+    | opcode_branch register COMMA register COMMA SYMBOL
     {
         std::cout << "B-type" << std::endl;
         // These are typically branch instructions
@@ -273,7 +273,7 @@ instruction:
     ;
 
 psuedo_instruction:
-      LA REG COMMA LABEL
+      LA REG COMMA SYMBOL
     {
         std::cout << "la x" << $2 << " " << $4 << std::endl;
         // TODO: find the address of
@@ -281,7 +281,7 @@ psuedo_instruction:
         //auipc t0, %pcrel_hi(addr);
         //addi  t0, t0, %pcrel_lo(addr);
     }
-    | JUMP LABEL
+    | JUMP SYMBOL
     {
         // alias of: jal x0, label
         std::cout << "j " << $2 << std::endl;
@@ -372,22 +372,22 @@ immediate_kind:
        // TODO: call it something else instead of IMM, it's too loaded a term
        currentLabel = "";
        temp_int_literal = $1;
-       $$ = imm_kind::INT;
+       $$ = imm_kind::IMM_INT;
     }
     | modifier
     {
        std::cout << "a modifier" << std::endl;
     }
-    | LABEL
+    | SYMBOL
     {
        std::cout << "a symbol" << std::endl;
        currentLabel = $1;
-       $$ = imm_kind::SYMBOL;
+       $$ = imm_kind::IMM_SYMBOL;
     }
     ;
 
 modifier:
-    PCT HI PAREN_OPEN LABEL PAREN_CLOSE
+    PCT HI PAREN_OPEN SYMBOL PAREN_CLOSE
     {
         // should it be label or symbol
         currentLabel = $4;

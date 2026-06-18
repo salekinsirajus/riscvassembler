@@ -11,8 +11,8 @@ typedef struct opcode_t {
 } opcode_t;
 
 enum class imm_kind {
-    INT = 1,
-    SYMBOL = 2, 
+    IMM_INT = 1,
+    IMM_SYMBOL = 2,
     MODIFIER_ABS_HI = 3,
     MODIFIER_ABS_LO = 4,
     MODIFIER_PCREL_HI = 5,
