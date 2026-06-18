@@ -129,8 +129,6 @@ class ELF32
 
         std::map<uint32_t, uint32_t> label_to_addr;    /* hash to address    */
 
-        // <offset in .text, and the label>
-        std::vector<std::pair<uint32_t, std::string>> forward_decls;
         std::vector<UnresolvedInst32> unresolved_instructions;
 
         // constants
