@@ -1,9 +1,6 @@
 #include "data.h"
 
-Data::Data()
-{
-
-}
+Data::Data() { }
 
 size_t Data::push(const uint32_t entry)
 {
@@ -30,7 +27,7 @@ size_t Data::push(std::string entry)
     return offset;
 }
 
-// FIX this: the API is off
+// FIXME the API is off
 uint8_t Data::get_entry(size_t idx)
 {
     return 0xDE;

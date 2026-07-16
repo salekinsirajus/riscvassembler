@@ -29,6 +29,5 @@ public:
     Elf32_Shdr* header;
 
 private:
-    std::vector<char> content;
     bool is_section_header_string_table;
 };

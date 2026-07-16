@@ -12,8 +12,5 @@ class Symtab : Section<Elf32_Sym>
         size_t size_in_bytes() const override;
     
         Elf32_Shdr* header;
-    
-    private:
-         std::vector<Elf32_Sym> data;
 };
 

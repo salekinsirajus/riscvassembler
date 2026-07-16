@@ -69,6 +69,6 @@ public:
   //        t.serialize(os, bo);
   //     }
   // }
-private:
+protected:
   std::vector<T> data;
 };

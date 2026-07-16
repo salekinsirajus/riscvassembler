@@ -7,8 +7,8 @@ StringTable::StringTable(bool _is_shstrtab)
 }
 
 void StringTable::init_table(){
-    if (content.empty()){
-       content.push_back('\0');
+    if (data.empty()){
+       data.push_back('\0');
     }
 }
 
@@ -24,31 +24,31 @@ size_t StringTable::add_string(const char* str) {
 	size_t len = std::strlen(str);
 
     // special case for empty table
-    if (content.size() < 2){
+    if (data.size() < 2){
         offset = 1;
-        content.insert(content.end(), '\0');
+        data.insert(data.end(), '\0');
     }
     else {
-        offset = content.size() - 1;
+        offset = data.size() - 1;
     }
 
-    content.insert(content.end() - 1, str, str + len);
-    content.insert(content.end() - 1, '\0');
+    data.insert(data.end() - 1, str, str + len);
+    data.insert(data.end() - 1, '\0');
 
     header->sh_size = size_in_bytes();
     return offset;
 }
 const char* StringTable::get_string(size_t offset) const {
-    if (offset >= content.size()) throw std::out_of_range("Offset out of bounds");
-    return &content[offset];
+    if (offset >= data.size()) throw std::out_of_range("Offset out of bounds");
+    return &data[offset];
 }
 
 size_t StringTable::size() const {
-    return content.size();
+    return data.size();
 }
 
 size_t StringTable::size_in_bytes() const {
-    return content.size() * sizeof(char);
+    return data.size() * sizeof(char);
 }
 
 void StringTable::serialize(std::ostream &os, byte_order bo) {
@@ -63,12 +63,12 @@ void StringTable::serialize(std::ostream &os, byte_order bo) {
     header->sh_size = size_in_bytes();
 
     //endianness adjustment is not needed for a char (so we are ignoring the byte order param
-    os.write(reinterpret_cast<const char*>(content.data()), content.size());
+    os.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
 
 void StringTable::print_content() const {
     const size_t columns = 10;
-    size_t size = content.size();
+    size_t size = data.size();
 
     // Print column headers
     printf("\n========= strtab (size: %zu) =========\n", size);
@@ -78,13 +78,13 @@ void StringTable::print_content() const {
     }
     printf("\n-------+------------------------------\n");
 
-    // Print content in rows of 10
+    // Print data in rows of 10
     for (size_t i = 0; i < size; i += columns) {
         printf("%06zu |", i);  // Offset
 
         for (size_t j = 0; j < columns; ++j) {
             if (i + j < size) {
-                char c = content[i + j];
+                char c = data[i + j];
                 if (std::isprint(static_cast<unsigned char>(c))) {
                     printf(" %c ", c);
                 } else {

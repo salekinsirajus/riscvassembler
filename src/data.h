@@ -16,8 +16,4 @@ public:
     size_t push(const uint32_t entry);  
     size_t push(const uint8_t entry);
     size_t push(std::string entry);
-
-private:
-
-    std::vector<uint8_t> data;
 };

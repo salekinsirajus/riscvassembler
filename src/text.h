@@ -10,7 +10,4 @@ public:
     void push(const uint32_t instr);
 
     size_t size_in_bytes() const override;
-private:
-
-    std::vector<uint32_t> data;
 };
