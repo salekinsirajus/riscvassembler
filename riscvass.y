@@ -252,9 +252,10 @@ instruction:
                 elf.get_next_insn_number(currentSection), B_TYPE, offset,
                 elf.get_next_insn_number(currentSection) - 1 /* add api */
             );
-        }
+        } 
+        //FIXME: seems to be a bug here?
         temp_inst = emit_b_type_instruction(
-            0x0, $2, $4, ($1).funct3, ($1).op
+            offset, $2, $4, ($1).funct3, ($1).op
         );
         std::cout << "temp_inst: " << std::hex << temp_inst << std::endl;
         elf.add_to_text(temp_inst);
