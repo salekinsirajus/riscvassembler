@@ -181,6 +181,17 @@ size_t ELF32::store_regular_string(std::string str){
     return offset; //index at which this string is stored
 }
 
+size_t ELF32::get_section_idx(std::string section_name)
+{
+    auto it = section_to_idx.find(section_name);
+    if (it != section_to_idx.end())
+    {
+        return std::distance(section_to_idx.begin(), it);
+    }
+
+    return SIZE_MAX;
+}
+
 void ELF32::init_label(std::string the_label, bool is_global, std::string section_name){
     //FIXME: review this later on, if the label already exists because of a directive, don't
     //FIXME: no need to create it. check if this still holds true when things get complicated
@@ -225,9 +236,22 @@ bool ELF32::label_exists(std::string label){
     return (resolved_labels.count(label) > 0);
 }
 
-bool ELF32::symbol_exists(std::string symbol)
+void ELF32::add_symbol(
+    std::string sym_text, 
+    size_t section_idx, 
+    uint32_t offset_idx,
+    size_t symtab_idx,
+    bool is_resolved,
+    bool is_label
+)
 {
-    std::map<std::string, Sym>::iterator it = symbols.find(symbol);
+    Sym s{section_idx, offset_idx, symtab_idx, is_resolved, is_label};
+    symbols[sym_text] = s;
+}
+
+bool ELF32::symbol_exists(std::string sym_text)
+{
+    std::map<std::string, Sym>::iterator it = symbols.find(sym_text);
     if (it == symbols.end()) return false;
 
     return true;

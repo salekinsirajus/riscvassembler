@@ -194,10 +194,10 @@ instruction:
                 break;
             case imm_kind::IMM_SYMBOL:
                 // TODO: enforce the right kind of modifiers that can be accepted here for I-types
-                std::cout << "Symbol as immediate is IN-PROGRESS" << std::endl;
                 if (!elf.symbol_exists(currentLabel)){
                     std::cout << "Symbol not found" << std::endl;
-                    //TODO: add to the list of symbols
+                    section_idx = elf.get_section_idx(currentSection);
+                    elf.add_symbol(currentLabel, section_idx, UNRESOLVED_IDX, UNRESOLVED_IDX, false, false/* ? */);
                 }
                 else {
                     elf.resolve_symbol(currentLabel, sym);

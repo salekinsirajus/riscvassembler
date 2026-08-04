@@ -23,6 +23,8 @@
 #include "text.h"
 #include "data.h"
 
+const size_t UNRESOLVED_IDX = 0xFAF0;
+
 // what we need for the assembler and what we dont need
 // Relocatable object files do not need a program header table. (solaris)
 // A relocateble object must have a section header table
@@ -70,7 +72,16 @@ class ELF32
         void    update_label_visibility(std::string label, bool is_global);
         size_t  store_regular_string(std::string str);
         size_t  store_section_name(std::string);
+        /* Given a section name, get its index. Returns a sentinel when not found
+         * @param section_name std::string name of the section
+         * @returns index into vector that contains the sections
+         */
+        size_t  get_section_idx(std::string section_name);
         int32_t resolve_label(std::string label, uint32_t& offset);
+        void    add_symbol(
+                    std::string sym_text, size_t section_idx, uint32_t offset_idx, 
+                    size_t symtab_idx,  bool is_resolved, bool is_label
+                );
         bool    resolve_symbol(std::string symbol, Sym& _sym);
         bool    symbol_exists(std::string symbol);
         bool    symbol_resolved(std::string symbol);
