@@ -65,19 +65,56 @@ class ELF32
         ELF32(void);
         ~ELF32();
 
+        /* How many valid sections do we have */
         size_t  sections_count() const;
+
+        /* How many section headers do we have */
         size_t  section_headers_count() const;
+
+        /* Initialize a label
+         * @param label std::string name of the label
+         * @param is_gloabl bool visibility (local for only this file, global for linkers)
+         * @param section_name std::string which section is this related to (TODO: get index/ptr instead)
+         */
         void    init_label(std::string label, bool is_global, std::string section_name);
+
+        /* Check if a label exists
+         * @param label std::string name of the label
+         * @returns true if it exists, false otherwise
+         */
         bool    label_exists(std::string label);
+
+        /* Change the visibility level of a label
+         * @param label std::string name of the label
+         * @param is_global bool set it to global if it's true, set to local otherwise
+         */
         void    update_label_visibility(std::string label, bool is_global);
+
+        /* Stores a string into the generic string table
+         * @param str std::string the string to store
+         * @returns the index of the string table it's stored at.
+         */
         size_t  store_regular_string(std::string str);
-        size_t  store_section_name(std::string);
+
+        /* Stores a string into a special string table where only the section names are stored
+         * @param str std::string the string to store
+         * @returns the index of the string table it's stored at.
+         */
+        size_t  store_section_name(std::string str);
+
         /* Given a section name, get its index. Returns a sentinel when not found
          * @param section_name std::string name of the section
          * @returns index into vector that contains the sections
          */
         size_t  get_section_idx(std::string section_name);
+
+        /* TODO
+         */
         int32_t resolve_label(std::string label, uint32_t& offset);
+
+        /* Add a new symbol to the program
+         * @param
+         */
         void    add_symbol(
                     std::string sym_text, size_t section_idx, uint32_t offset_idx, 
                     size_t symtab_idx,  bool is_resolved, bool is_label

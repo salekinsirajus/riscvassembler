@@ -226,7 +226,8 @@ void ELF32::update_label_visibility(std::string label, bool is_global)
     if (label_exists(label))
     {
         std::cout << "(NYI) go find the label in symtab and update it's visibility" << std::endl;
-    } else
+    }
+    else
     {
         init_label(label, is_global, ".text"); //FIXME: remove hardcoded section_name  
     }
