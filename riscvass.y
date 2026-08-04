@@ -109,12 +109,14 @@ statements:
 statement:
      SYMBOL COLON instructions
     {
+        // This is a LABEL
         elf.init_label($1, false/*is_global*/, currentSection);
     }
     | SYMBOL COLON directive
     {
         std::cout << "SYMBOL: directive " << std::endl;
         currentLabel = $1;
+        // TODO: the following need to be put into the specific directive
         if (temp_value.size() > 0){
             elf.add_program_data($1, temp_value, currentSection);
             temp_value = "";  //reset
